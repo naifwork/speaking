@@ -1,0 +1,2911 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Speaking Coach Dashboard | لوحة مدرب المحادثة</title>
+  <!-- خط اليمامة (Alyamama) من خطوط جوجل -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=Alyamama:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #05130e;
+      --card: rgba(11, 34, 26, 0.75);
+      --inner: rgba(6, 20, 15, 0.85);
+      --border: rgba(52, 211, 153, 0.22);
+      --border-strong: rgba(16, 185, 129, 0.5);
+      --text: #ecfdf5;
+      --muted: #94b8ac;
+      --accent: #10b981;
+      --accent-hover: #059669;
+      --glow: #34d399;
+      --success: #10b981;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --info: #06b6d4;
+      --purple: #a855f7;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Alyamama', system-ui, -apple-system, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      background-image:
+        radial-gradient(circle at 15% 15%, rgba(16, 185, 129, 0.14) 0%, transparent 40%),
+        radial-gradient(circle at 85% 80%, rgba(6, 182, 212, 0.1) 0%, transparent 40%);
+      background-attachment: fixed;
+      color: var(--text);
+      padding: 14px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .layout-wrapper {
+      width: 100%;
+      max-width: 1200px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+    }
+
+    @media (min-width: 880px) {
+      .dashboard-grid {
+        grid-template-columns: 1.15fr 0.85fr;
+      }
+    }
+
+    .card {
+      background: var(--card);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    }
+
+    h1 { font-size: 1.2rem; font-weight: 800; color: #fff; margin-bottom: 2px; }
+    h2 { font-size: 0.98rem; font-weight: 700; color: #fff; margin-bottom: 8px; }
+    p.sub { font-size: 0.8rem; color: var(--muted); }
+
+    select, input[type="text"], textarea {
+      background: var(--inner);
+      border: 1px solid var(--border);
+      color: #fff;
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-size: 0.84rem;
+      outline: none;
+    }
+
+    option, optgroup {
+      background-color: #061a13 !important;
+      color: #ecfdf5 !important;
+    }
+
+    select:focus, input[type="text"]:focus, textarea:focus {
+      border-color: var(--glow);
+    }
+
+    textarea {
+      width: 100%;
+      height: 75px;
+      resize: vertical;
+      direction: ltr;
+      text-align: left;
+      line-height: 1.5;
+    }
+
+    .settings-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      font-size: 0.8rem;
+    }
+
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 10px;
+      align-items: center;
+    }
+
+    button {
+      flex: 1;
+      min-width: 110px;
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid transparent;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: #fff;
+    }
+    .btn-primary:hover { background: var(--accent-hover); }
+
+    .btn-record { background: #dc2626; color: #fff; }
+    .btn-record.recording {
+      background: #991b1b;
+      border-color: #f87171;
+      animation: pulse 1.5s infinite;
+    }
+
+    .btn-gold {
+      background: rgba(245, 158, 11, 0.2);
+      color: #fde68a;
+      border: 1px solid rgba(245, 158, 11, 0.45);
+    }
+    .btn-gold:hover { background: rgba(245, 158, 11, 0.35); }
+
+    .btn-secondary {
+      background: rgba(16, 48, 37, 0.7);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:hover {
+      background: rgba(22, 66, 51, 0.9);
+      border-color: var(--glow);
+    }
+
+    .btn-sm {
+      padding: 4px 9px;
+      font-size: 0.76rem;
+      min-width: auto;
+      flex: none;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.55; }
+    }
+
+    .toggle-chip {
+      background: var(--inner);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 4px 10px;
+      border-radius: 16px;
+      font-size: 0.75rem;
+      cursor: pointer;
+      user-select: none;
+    }
+    .toggle-chip.active {
+      background: rgba(16, 185, 129, 0.28);
+      color: #fff;
+      border-color: var(--glow);
+    }
+
+    .player-card {
+      display: none;
+      margin-top: 10px;
+      padding: 10px;
+      border-radius: 8px;
+      background: var(--inner);
+      border: 1px solid var(--border-strong);
+    }
+
+    /* شاشة المحادثة العصرية على طراز تطبيقات المراسلة الفورية الفاخرة */
+    .conversation-box {
+      min-height: 290px;
+      max-height: 400px;
+      overflow-y: auto;
+      padding: 16px;
+      border-radius: 20px;
+      background: #020a07;
+      background-image:
+        radial-gradient(circle at 10% 15%, rgba(16, 185, 129, 0.08) 0%, transparent 45%),
+        radial-gradient(circle at 90% 85%, rgba(6, 182, 212, 0.06) 0%, transparent 45%);
+      border: 1px solid rgba(52, 211, 153, 0.22);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      scroll-behavior: smooth;
+    }
+
+    .conversation-box::-webkit-scrollbar { width: 5px; }
+    .conversation-box::-webkit-scrollbar-thumb { background: rgba(52, 211, 153, 0.25); border-radius: 10px; }
+
+    /* فقاعات الرسائل العصرية ذات الحواف غير المتماثلة مع ذيل الرسالة (Message Tails) */
+    .bubble {
+      max-width: 82%;
+      padding: 12px 16px;
+      line-height: 1.65;
+      position: relative;
+      font-size: 0.95rem;
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
+      transition: transform 0.15s ease;
+    }
+
+    /* فقاعة الطرف الآخر (المحاور - وارد) */
+    .bubble-ai {
+      align-self: flex-start;
+      background: rgba(13, 38, 29, 0.88);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(52, 211, 153, 0.3);
+      border-radius: 20px 20px 20px 6px;
+    }
+
+    /* فقاعة المتعلم (صوت ورسالة - صادر) */
+    .bubble-user {
+      align-self: flex-end;
+      background: linear-gradient(135deg, rgba(6, 78, 59, 0.9) 0%, rgba(16, 185, 129, 0.35) 100%);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(52, 211, 153, 0.5);
+      border-radius: 20px 20px 6px 20px;
+    }
+
+    .bubble-user.eval-green { 
+      background: linear-gradient(135deg, rgba(6, 95, 70, 0.92) 0%, rgba(16, 185, 129, 0.4) 100%); 
+      border-color: #34d399; 
+    }
+    .bubble-user.eval-yellow { 
+      background: linear-gradient(135deg, rgba(120, 53, 15, 0.9) 0%, rgba(245, 158, 11, 0.35) 100%); 
+      border-color: #fbbf24; 
+    }
+    .bubble-user.eval-red { 
+      background: linear-gradient(135deg, rgba(127, 29, 29, 0.9) 0%, rgba(239, 68, 68, 0.35) 100%); 
+      border-color: #f87171; 
+    }
+
+    /* شريط الكلمات التفاعلية */
+    .en-text {
+      direction: ltr;
+      text-align: left;
+      font-size: 1.1rem;
+      color: #fff;
+      font-weight: 600;
+      transition: filter 0.25s;
+    }
+    .en-text.blurred {
+      filter: blur(6px);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .word-span {
+      cursor: pointer;
+      padding: 0 3px;
+      border-radius: 4px;
+      transition: background 0.15s;
+    }
+    .word-span:hover {
+      background: rgba(52, 211, 153, 0.3);
+      color: #a7f3d0;
+    }
+
+    /* صينية التلميحات السريعة على طراز كبسولات شات بوتات تليجرام (Quick Reply Pills) */
+    .helper-bar {
+      margin-top: 8px;
+      padding: 10px 14px;
+      border-radius: 16px;
+      background: rgba(6, 20, 15, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(52, 211, 153, 0.25);
+      font-size: 0.8rem;
+    }
+
+    #hintsContainer {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 6px;
+    }
+
+    .hint-chip {
+      display: inline-flex;
+      align-items: center;
+      background: rgba(16, 185, 129, 0.14);
+      border: 1px solid rgba(52, 211, 153, 0.35);
+      color: #d1fae5;
+      padding: 5px 13px;
+      border-radius: 20px;
+      font-size: 0.82rem;
+      cursor: pointer;
+      direction: ltr;
+      transition: all 0.2s ease;
+      user-select: none;
+    }
+    .hint-chip:hover { 
+      background: rgba(16, 185, 129, 0.3); 
+      border-color: var(--glow); 
+      color: #fff; 
+      transform: translateY(-1px);
+      box-shadow: 0 3px 12px rgba(16, 185, 129, 0.25);
+    }
+
+    /* بطاقة القاموس والنطق السفلية (نفس فكرة مدرب القراءة) */
+    .tooltip-card {
+      display: none;
+      background: var(--inner);
+      border: 1px solid var(--border-strong);
+      border-radius: 8px;
+      padding: 12px;
+      margin-top: 10px;
+      font-size: 0.85rem;
+      line-height: 1.55;
+    }
+
+    .human-audio-box {
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px dashed var(--border);
+    }
+
+    .source-btn {
+      padding: 3px 8px;
+      font-size: 0.75rem;
+      border-radius: 5px;
+      background: rgba(16, 48, 37, 0.9);
+      border: 1px solid var(--border);
+      color: #6ee7b7;
+      cursor: pointer;
+      flex: none;
+      min-width: auto;
+    }
+    .source-btn:hover { border-color: var(--glow); color: #fff; }
+
+    /* بطاقات التقييم الملونة */
+    .behavior-grid { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+    .metric-card {
+      padding: 10px 12px;
+      border-radius: 8px;
+      font-size: 0.84rem;
+      line-height: 1.45;
+      border-right: 4px solid transparent;
+      background: var(--inner);
+    }
+    .metric-emerald { border-right-color: var(--accent); background: rgba(16, 185, 129, 0.08); }
+    .metric-teal { border-right-color: var(--info); background: rgba(6, 182, 212, 0.08); }
+    .metric-yellow { border-right-color: var(--warning); background: rgba(245, 158, 11, 0.08); }
+    .metric-purple { border-right-color: var(--purple); background: rgba(168, 85, 247, 0.08); }
+
+    .metric-card .title {
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 3px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .score-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px 12px;
+      border-radius: 6px;
+      font-weight: 800;
+      font-size: 1rem;
+      background: var(--inner);
+      border: 2px solid var(--glow);
+    }
+
+    .word-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--inner);
+      border: 1px solid var(--border);
+      padding: 3px 8px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 0.82rem;
+    }
+    .word-badge:hover { border-color: var(--glow); }
+    .word-badge .del-btn { color: var(--muted); font-size: 0.9rem; padding: 0 2px; }
+    .word-badge .del-btn:hover { color: var(--danger); }
+
+    /* مؤشر الصوت المدمج */
+    .mini-wave {
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+      height: 14px;
+      vertical-align: middle;
+    }
+    .mini-wave span {
+      width: 3px;
+      height: 4px;
+      background: var(--glow);
+      border-radius: 2px;
+      transition: height 0.08s;
+    }
+
+    /* تأثيرات واجهة الاتصال الهاتفي وتوهج نسخ البرومبت */
+    @keyframes callPulseRing {
+      0% { transform: scale(0.96); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+      70% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+      100% { transform: scale(0.96); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+
+    @keyframes promptBeacon {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7); border-color: #fbbf24; }
+      50% { box-shadow: 0 0 16px 4px rgba(245, 158, 11, 0.4); border-color: #fde68a; background: rgba(245, 158, 11, 0.35); }
+    }
+
+    .prompt-beacon-active {
+      animation: promptBeacon 1.4s infinite !important;
+      color: #fff !important;
+    }
+
+    .call-avatar-box {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: rgba(16, 185, 129, 0.2);
+      border: 1.5px solid var(--glow);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.15rem;
+    }
+
+    .call-avatar-box.speaking {
+      animation: callPulseRing 1.3s infinite;
+      border-color: #6ee7b7;
+    }
+
+    .live-status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #10b981;
+      display: inline-block;
+      box-shadow: 0 0 8px #10b981;
+    }
+
+    /* شاشة الحوار بملء الشاشة 100% (Fullscreen Immersion Stage) */
+    #fullscreenStage {
+      display: none;
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      background: #030c08;
+      background-image:
+        radial-gradient(circle at 50% 15%, rgba(16, 185, 129, 0.16) 0%, transparent 65%),
+        radial-gradient(circle at 50% 90%, rgba(6, 182, 212, 0.12) 0%, transparent 65%);
+      z-index: 99999;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 14px 18px;
+      box-sizing: border-box;
+      overflow-y: auto;
+    }
+
+    .mode-badge-onsite {
+      background: rgba(14, 165, 233, 0.18);
+      border: 1px solid #0284c7;
+      color: #7dd3fc;
+      padding: 3px 10px;
+      border-radius: 14px;
+      font-size: 0.74rem;
+      font-weight: bold;
+    }
+
+    .mode-badge-call {
+      background: rgba(16, 185, 129, 0.18);
+      border: 1px solid #10b981;
+      color: #6ee7b7;
+      padding: 3px 10px;
+      border-radius: 14px;
+      font-size: 0.74rem;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+<div class="layout-wrapper">
+
+  <!-- رأس الصفحة (بنفس بساطة مدرب القراءة) -->
+  <div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+      <div>
+        <h1>🎙️ مدرب المحادثة التفاعلي</h1>
+        <p class="sub">حوار حي بدون تقطيع للمايكروفون، قواميس نطق بشري فورية، وبرومبت تقييم شامل.</p>
+      </div>
+
+      <div class="settings-row">
+        <!-- إخفاء نمط النطق من القائمة العلوية مع بقائه في الخلفية لاستقرار القاموس -->
+        <select id="audioModeSelect" style="display: none;" onchange="handleAudioModeChange()">
+          <option value="tts" selected="">⚡ نطق المتصفح (فوري ولحظي)</option>
+          <option value="human_free">🎙️ بشري: القاموس الحر (FreeDict)</option>
+          <option value="human_wiki">🎙️ بشري: ويكيميديا (Wikimedia)</option>
+          <option value="human_cambridge_us">🇺🇸 بشري: كامبريدج (أمريكي)</option>
+          <option value="human_cambridge_uk">🇬🇧 بشري: كامبريدج (بريطاني)</option>
+        </select>
+
+        <span id="voiceWrapper" style="display: inline-flex; align-items: center; gap: 4px;">
+          <label>الصوت:</label>
+          <select id="voiceSelect" style="max-width: 170px;"><option value="0">⭐ Microsoft William Multilingual Online (Natural) - English (Australia) (en-AU)</option><option value="1">⭐ Microsoft Natasha Online (Natural) - English (Australia) (en-AU)</option><option value="2">⭐ Microsoft Clara Online (Natural) - English (Canada) (en-CA)</option><option value="3">⭐ Microsoft Liam Online (Natural) - English (Canada) (en-CA)</option><option value="4">⭐ Microsoft Sonia Online (Natural) - English (United Kingdom) (en-GB)</option><option value="5">⭐ Microsoft Ryan Online (Natural) - English (United Kingdom) (en-GB)</option><option value="6">⭐ Microsoft Libby Online (Natural) - English (United Kingdom) (en-GB)</option><option value="7">⭐ Microsoft Maisie Online (Natural) - English (United Kingdom) (en-GB)</option><option value="8">⭐ Microsoft Thomas Online (Natural) - English (United Kingdom) (en-GB)</option><option value="9">⭐ Microsoft Yan Online (Natural) - English (Hong Kong SAR) (en-HK)</option><option value="10">⭐ Microsoft Sam Online (Natural) - English (Hong Kong SAR) (en-HK)</option><option value="11">⭐ Microsoft Emily Online (Natural) - English (Ireland) (en-IE)</option><option value="12">⭐ Microsoft Connor Online (Natural) - English (Ireland) (en-IE)</option><option value="13">⭐ Microsoft Neerja Online (Natural) - English (India) (en-IN)</option><option value="14">⭐ Microsoft Prabhat Online (Natural) - English (India) (en-IN)</option><option value="15">⭐ Microsoft Asilia Online (Natural) - English (Kenya) (en-KE)</option><option value="16">⭐ Microsoft Chilemba Online (Natural) - English (Kenya) (en-KE)</option><option value="17">⭐ Microsoft Ezinne Online (Natural) - English (Nigeria) (en-NG)</option><option value="18">⭐ Microsoft Abeo Online (Natural) - English (Nigeria) (en-NG)</option><option value="19">⭐ Microsoft Molly Online (Natural) - English (New Zealand) (en-NZ)</option><option value="20">⭐ Microsoft Mitchell Online (Natural) - English (New Zealand) (en-NZ)</option><option value="21">⭐ Microsoft Rosa Online (Natural) - English (Philippines) (en-PH)</option><option value="22">⭐ Microsoft James Online (Natural) - English (Philippines) (en-PH)</option><option value="23">⭐ Microsoft Luna Online (Natural) - English (Singapore) (en-SG)</option><option value="24">⭐ Microsoft Wayne Online (Natural) - English (Singapore) (en-SG)</option><option value="25">⭐ Microsoft Imani Online (Natural) - English (Tanzania) (en-TZ)</option><option value="26">⭐ Microsoft Elimu Online (Natural) - English (Tanzania) (en-TZ)</option><option value="27">⭐ Microsoft Ava Multilingual Online (Natural) - English (United States) (en-US)</option><option value="28">⭐ Microsoft Andrew Multilingual Online (Natural) - English (United States) (en-US)</option><option value="29">⭐ Microsoft Emma Multilingual Online (Natural) - English (United States) (en-US)</option><option value="30">⭐ Microsoft Brian Multilingual Online (Natural) - English (United States) (en-US)</option><option value="31">⭐ Microsoft Ava Online (Natural) - English (United States) (en-US)</option><option value="32">⭐ Microsoft Andrew Online (Natural) - English (United States) (en-US)</option><option value="33">⭐ Microsoft Emma Online (Natural) - English (United States) (en-US)</option><option value="34">⭐ Microsoft Brian Online (Natural) - English (United States) (en-US)</option><option value="35">⭐ Microsoft Jenny Online (Natural) - English (United States) (en-US)</option><option value="36">⭐ Microsoft Guy Online (Natural) - English (United States) (en-US)</option><option value="37">⭐ Microsoft Aria Online (Natural) - English (United States) (en-US)</option><option value="38">⭐ Microsoft Ana Online (Natural) - English (United States) (en-US)</option><option value="39">⭐ Microsoft Christopher Online (Natural) - English (United States) (en-US)</option><option value="40">⭐ Microsoft Eric Online (Natural) - English (United States) (en-US)</option><option value="41">⭐ Microsoft Michelle Online (Natural) - English (United States) (en-US)</option><option value="42">⭐ Microsoft Roger Online (Natural) - English (United States) (en-US)</option><option value="43">⭐ Microsoft Steffan Online (Natural) - English (United States) (en-US)</option><option value="44">⭐ Microsoft Leah Online (Natural) - English (South Africa) (en-ZA)</option><option value="45">⭐ Microsoft Luke Online (Natural) - English (South Africa) (en-ZA)</option></select>
+        </span>
+        <button type="button" class="btn-secondary btn-sm" onclick="testVoicePlayback()" style="border-color: var(--glow); color: #6ee7b7;" title="تجربة الصوت الحالي">
+          🔊 تجربة سماع الصوت
+        </button>
+
+        <label>السرعة:</label>
+        <input type="range" id="rateRange" min="0.6" max="1.2" step="0.05" value="0.9" style="width: 65px; accent-color: var(--accent);">
+        <span id="rateVal" style="color: var(--glow);">0.9x</span>
+
+        <button type="button" class="btn-secondary btn-sm" onclick="togglePhoneticGuide()" style="border-color: var(--glow); color: #a7f3d0;">
+          📖 دليل النطق والرموز
+        </button>
+        <button type="button" class="btn-secondary btn-sm" onclick="toggleQuickHelp()" style="border-color: #f59e0b; color: #fde68a;">
+          💡 كيف يعمل المدرب؟
+        </button>
+        <button type="button" id="soundFxBtn" class="btn-secondary btn-sm" onclick="toggleSoundFx()" style="border-color: #f59e0b; color: #fde68a;" title="تشغيل أو كتم المؤثرات الصوتية ورنين الموقف">
+          🔔 المؤثرات: تعمل
+        </button>
+        <button type="button" id="micTestBtn" class="btn-secondary btn-sm" onclick="quickMicCheck()" style="border-color: var(--info); color: #67e8f9;">
+          🎙️ فحص المايك
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 1. شاشة التجهيز الرئيسية النظيفة (Setup Phase) -->
+      <div id="mainFlowWrapper" style="display: flex; flex-direction: column; gap: 14px; width: 100%;">
+
+        <!-- بطاقة إعداد الموقف الحواري وبدء الانطلاق -->
+        <div class="card" id="setupStageCard">
+          <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 8px;">
+            <label style="font-size: 0.85rem; font-weight: 700; color: var(--glow);">🎭 اختر الموقف الحواري:</label>
+            <select id="scenarioSelect" onchange="handleScenarioChange()" style="flex: 2; min-width: 220px;"><optgroup label="✈️ السفر والمطارات والفنادق"><option value="0">تسجيل الدخول في المطار واختيار المقعد (Airport Check-in)</option><option value="1">حجز واستلام غرفة في الفندق (Hotel Reception)</option></optgroup><optgroup label="☕ المطاعم والمقاهي والتسوق"><option value="2">طلب قهوة وحلوى في مقهى مختص (Coffee Shop Order)</option><option value="3">شراء لابتوب أو جوال من متجر تقني (Electronics Store)</option></optgroup><optgroup label="🎓 التعليم والعمل والنقاش الحر"><option value="4">عرض مشروع تقني أو تعليمي أمام لجنة تحكيم (Project Pitch)</option><option value="5">تعارف وحديث ودي عن الهوايات والمدينة (Introducing Yourself)</option></optgroup><optgroup label="🩺 الصحة والعيادة"><option value="6">زيارة الطبيب ووصف الأعراض الصحية (Doctor's Clinic)</option></optgroup><optgroup label="✨ خيارات التخصيص"><option value="custom_ai">🤖 قسم مخصص: توليد بالذكاء الاصطناعي (AI Custom)...</option><option value="custom_manual">✍️ قسم مخصص: كتابة يدوية خاصة (Manual Custom)...</option></optgroup></select>
+
+            <div style="display: inline-flex; align-items: center; gap: 4px; background: var(--inner); padding: 4px 8px; border-radius: 8px; border: 1px solid var(--border);">
+              <label style="font-size: 0.75rem; color: #a7f3d0; font-weight: bold;">🏢 البيئة:</label>
+              <select id="scenarioModeSelect" onchange="updateModeUI()" style="padding: 2px 4px; font-size: 0.75rem; border: none; font-weight: bold; color: #fff;">
+                <option value="auto" selected="">⚡ تلقائي حسب طبيعة الموقف</option>
+                <option value="onsite">🏢 موقف مباشر في الموقع (On-Site)</option>
+                <option value="call">📞 مكالمة هاتفية عن بُعد (Phone Call)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- شريط موجز مهمة الموقف والمحاور -->
+          <div id="setupMissionPreview" style="font-size: 0.82rem; color: var(--muted); background: var(--inner); padding: 8px 12px; border-radius: 8px; border-right: 3px solid var(--glow); margin-bottom: 8px;">🎯 <b>المهمة:</b> سجّل رحلتك، اطلب مقعداً بجانب النافذة، واسأل عن بوابة الصعود. &nbsp;|&nbsp; 👤 <b>المحاور:</b> <span style="color:#6ee7b7;">موظف المطار (Agent)</span></div>
+
+      <!-- صندوق قسم مخصص بالذكاء الاصطناعي (AI Custom) -->
+      <div id="customAiBox" style="display: none; margin-top: 10px; padding: 12px; border-radius: 10px; background: var(--inner); border: 1px solid var(--glow); box-shadow: 0 4px 16px rgba(16, 185, 129, 0.15);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 6px;">
+          <div style="font-size: 0.86rem; font-weight: 800; color: #a7f3d0; display: flex; align-items: center; gap: 6px;">
+            <span>🤖</span><span>توليد الحوار المخصص بالذكاء الاصطناعي (AI Custom)</span>
+          </div>
+          <div style="display: inline-flex; align-items: center; gap: 4px; background: rgba(0,0,0,0.35); padding: 3px 8px; border-radius: 6px; border: 1px solid var(--border);">
+            <label style="font-size: 0.74rem; color: #fde68a; font-weight: bold;">🎯 عمق المقابلة:</label>
+            <select id="aiInterviewDepthSelect" onchange="updatePromptPreviewHint()" style="padding: 2px 4px; font-size: 0.74rem; border: none; background: transparent; color: #fff; font-weight: bold;">
+              <option value="short" selected="">⚡ قصيرة وسريعة (3 أسئلة: إحماء وتدرج مباشر)</option>
+              <option value="medium">⏱️ متوسطة قياسية (5 أسئلة: تفاصيل ومتابعة ورأي)</option>
+              <option value="long">⏳ طويلة ومعمقة (7 أسئلة: مواقف وافتراضات وتحليل)</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px;">
+          <input type="text" id="customAiTopicInput" placeholder="اكتب موضوع الحديث هنا (مثال: Teacher Job Interview / Ordering Food / Tech Trends)..." style="flex: 1; min-width: 220px;">
+          <button type="button" class="btn-gold btn-sm" onclick="copyAiGenerationPrompt()">📋 نسخ برومبت التوليد للذكاء</button>
+        </div>
+
+        <div style="font-size: 0.75rem; color: var(--muted); margin-bottom: 5px;">
+          💡 <span id="promptDepthNotice" style="color: #6ee7b7;">سيطلب البرومبت تلقائياً <b>(3 أسئلة متدرجة)</b> مع 3 تلميحات مفتاحية ملونة لكل سؤال.</span>
+        </div>
+
+        <textarea id="customAiPasteArea" oninput="handleCustomAiInput()" style="height: 85px;" placeholder="ألصق هنا النص الناتج من الذكاء الاصطناعي بأي شكل (JSON أو قائمة مرقمة 1. 2. 3. أو أسئلة وتلميحات)... سيتم التحليل والاعتماد تلقائياً فور اللصق! ⚡"></textarea>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px; flex-wrap: wrap; gap: 6px;">
+          <div style="display: flex; gap: 4px; flex-wrap: wrap;">
+            <span style="font-size: 0.72rem; color: var(--muted); margin-left: 4px;">نماذج سريعة:</span>
+            <button type="button" class="btn-secondary btn-sm" style="padding: 2px 6px; font-size: 0.7rem;" onclick="setQuickAiTopic('Job Interview for English Teacher')">مقابلة عمل</button>
+            <button type="button" class="btn-secondary btn-sm" style="padding: 2px 6px; font-size: 0.7rem;" onclick="setQuickAiTopic('Ordering Specialty Coffee &amp; Pastry')">مقهى مختص</button>
+            <button type="button" class="btn-secondary btn-sm" style="padding: 2px 6px; font-size: 0.7rem;" onclick="setQuickAiTopic('Discussing Favorite Tech Gadgets')">تقنية وأجهزة</button>
+          </div>
+          <button type="button" id="applyAiScenarioBtn" class="btn-primary btn-sm" onclick="parseAndApplyAiScenario(true)">🚀 تحليل النص واعتماد الحوار للبدء</button>
+        </div>
+      </div>
+
+      <!-- صندوق قسم مخصص يدوي (Manual Custom) -->
+      <div id="customManualBox" style="display: none; margin-top: 10px; padding: 12px; border-radius: 10px; background: var(--inner); border: 1px dashed var(--border-strong);">
+        <div style="font-size: 0.86rem; font-weight: 800; color: #fde68a; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+          <span>✍️</span><span>كتابة حوار مخصص يدوياً (Manual Custom)</span>
+        </div>
+        <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 6px;">
+          <input type="text" id="customManualTopicInput" placeholder="عنوان الموقف أو الموضوع (مثال: Classroom Discussion)" style="flex: 1; min-width: 180px;">
+          <button type="button" class="btn-secondary btn-sm" onclick="resetManualSample()">🪄 تعبئة نموذج افتراضي</button>
+        </div>
+        <textarea id="customManualQuestionsText" style="height: 80px;" placeholder="اكتب أسئلة المحاور هنا بالإنجليزية (كل سؤال في سطر مستقل)..."></textarea>
+        <div style="display: flex; justify-content: flex-end; margin-top: 6px;">
+          <button type="button" class="btn-primary btn-sm" onclick="applyManualCustomQuestions()">✔️ اعتماد الأسئلة وبدء الجاهزية</button>
+        </div>
+      </div>
+
+      <!-- شريط الخيارات السريعة وزر الانطلاق الكبير -->
+      <div class="btn-row" style="margin-top: 12px; gap: 8px;">
+        <button id="callBtn" class="btn-primary" style="flex: 2; min-width: 200px; padding: 12px 18px; font-size: 1rem;" onclick="toggleConversationCall()">
+          🔴 بدء المحادثة والانطلاق بملء الشاشة 🚀
+        </button>
+
+        <div style="display: inline-flex; align-items: center; gap: 4px; background: var(--inner); padding: 4px 8px; border-radius: 8px; border: 1px solid var(--glow);">
+          <label style="font-size: 0.75rem; color: #a7f3d0; font-weight: 700;">⏱️ الرد:</label>
+          <select id="responseDurationSelect" style="padding: 2px 4px; font-size: 0.75rem; border: none; font-weight: bold; color: #fff;">
+            <option value="3">⚡ قصير (3s)</option>
+            <option value="8" selected="">⏱️ متوسط (8s)</option>
+            <option value="15">⏳ طويل (15s)</option>
+          </select>
+        </div>
+
+        <div style="display: inline-flex; align-items: center; gap: 4px; background: var(--inner); padding: 4px 8px; border-radius: 8px; border: 1px solid var(--border);">
+          <label style="font-size: 0.75rem; color: var(--muted);">الحفظ:</label>
+          <select id="audioFormatSelect" style="padding: 2px 4px; font-size: 0.75rem; border: none;">
+            <option value="wav" selected="">WAV</option>
+            <option value="webm">WebM</option>
+          </select>
+        </div>
+
+        <div style="display: inline-flex; align-items: center; gap: 4px; background: var(--inner); padding: 4px 8px; border-radius: 8px; border: 1px solid var(--border);">
+          <label style="font-size: 0.75rem; color: var(--muted);">التدقيق:</label>
+          <select id="strictnessSelect" style="padding: 2px 4px; font-size: 0.75rem; border: none;">
+            <option value="friendly">🌱 هادئ</option>
+            <option value="balanced" selected="">⚖️ متوازن</option>
+            <option value="native">💎 Native</option>
+            <option value="strict">🔥 صارم</option>
+            <option value="cefr">🎯 CEFR</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. بطاقة ما بعد المحادثة ونسخ البرومبت (تظهر فقط بعد إنهاء الحوار وحفظ الصوت) -->
+    <div id="postCallStage" class="card" style="display: none; border-color: var(--glow); box-shadow: 0 8px 32px rgba(16, 185, 129, 0.25);">
+      <div style="text-align: center; padding: 8px 0 14px;">
+        <div style="font-size: 1.1rem; font-weight: 800; color: #fff; margin-bottom: 4px;">🎉 اكتمل الموقف الحواري بنجاح!</div>
+        <p id="downloadStatusNotice" style="font-size: 0.85rem; color: #a7f3d0; margin-bottom: 12px;">تم حفظ ملف الصوت تلقائياً في التنزيلات 📥</p>
+        
+        <div id="playerBox" style="display: none; max-width: 500px; margin: 0 auto 14px;">
+          <audio id="audioPreview" controls="" style="width: 100%; height: 36px;"></audio>
+        </div>
+
+        <div style="background: rgba(0,0,0,0.3); border-radius: 10px; padding: 12px; max-width: 540px; margin: 0 auto 12px; border: 1px dashed var(--border);">
+          <div style="font-size: 0.82rem; color: #fde68a; font-weight: bold; margin-bottom: 4px;">🧭 الخطوة التالية:</div>
+          <div style="font-size: 0.8rem; color: #ecfdf5; line-height: 1.5;">
+            اضغط الزر أدناه لنسخ برومبت التقييم، ثم اسحب ملف التسجيل الصوتي مع البرومبت إلى الذكاء الاصطناعي.
+          </div>
+        </div>
+
+        <button id="copyPromptBtn" class="btn-primary prompt-beacon-active" style="padding: 12px 28px; font-size: 1rem; border-radius: 10px; margin: 0 auto;" onclick="copyPrompt()">
+          📋 نسخ برومبت التقييم للذكاء الاصطناعي
+        </button>
+      </div>
+    </div>
+
+    <!-- 3. صندوق استيراد كود الـ JSON (يظهر فقط بعد نقر زر نسخ البرومبت) -->
+    <div id="jsonImportStage" class="card" style="display: none; border-color: #f59e0b; box-shadow: 0 8px 32px rgba(245, 158, 11, 0.2);">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 6px;">
+        <div>
+          <h2 style="margin: 0; color: #fde68a;">📥 ألصق كود التقييم الناتج من الذكاء الاصطناعي (JSON)</h2>
+          <p class="sub" style="margin-top: 2px;">بعد أن يُخرج الذكاء كود الـ JSON، انسخه بالكامل وألصقه هنا لعرض درجاتك وملاحظاتك فوراً.</p>
+        </div>
+        <button class="btn-secondary btn-sm" onclick="loadSampleEvaluation()" style="color: #fde68a;">✨ تجربة نموذج جاهز</button>
+      </div>
+      <textarea id="jsonInput" style="height: 80px;" placeholder="{&quot;score&quot;: 8.5, &quot;behavior&quot;: {...}, &quot;turns&quot;: [...], &quot;golden_phrases&quot;: [...]}"></textarea>
+      <div class="btn-row" style="margin-top: 8px;">
+        <button class="btn-primary" style="padding: 10px;" onclick="applyJsonEvaluation()">🎯 اعتماد النتيجة واستعراض التقرير الملون</button>
+      </div>
+    </div>
+
+    <!-- 4. لوحة النتائج الشاملة وبنك العبارات (تظهر فقط بعد اعتماد كود الـ JSON) -->
+    <div id="evaluationResultsStage" style="display: none; flex-direction: column; gap: 14px;">
+      
+      <!-- كرت درجات الأداء والسلوك -->
+      <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <h2>التقييم الشامل للمحادثة</h2>
+          <div id="scoreDisplay" class="score-badge" style="display: none;">/ 10</div>
+        </div>
+
+        <div class="behavior-grid">
+          <div class="metric-card metric-emerald">
+            <div class="title">🌊 الطلاقة وانسيابية الحديث (Fluency &amp; Pace)</div>
+            <div id="m_fluency" style="color: var(--muted); font-size: 0.8rem;">بانتظار تحليل المحادثة...</div>
+          </div>
+          <div class="metric-card metric-teal">
+            <div class="title">📐 سلامة القواعد وتراكيب الجمل (Grammar)</div>
+            <div id="m_grammar" style="color: var(--muted); font-size: 0.8rem;">بانتظار تحليل المحادثة...</div>
+          </div>
+          <div class="metric-card metric-yellow">
+            <div class="title">💎 ثراء المفردات والطبيعية (Vocab &amp; Idioms)</div>
+            <div id="m_vocab" style="color: var(--muted); font-size: 0.8rem;">بانتظار تحليل المحادثة...</div>
+          </div>
+          <div class="metric-card metric-purple">
+            <div class="title">💡 الخلاصة والتوجيه الفوري (Key Takeaway)</div>
+            <div id="m_takeaway" style="color: var(--muted); font-size: 0.8rem;">بانتظار تحليل المحادثة...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- كرت مراجعة الأدوار وتصحيح الردود المسجلة -->
+      <div class="card">
+        <h2 style="margin-bottom: 8px;">تفاصيل الردود وتصحيحات المتحدث الأصلي (Native Corrections)</h2>
+        <div id="reviewChatTheater" class="conversation-box" style="max-height: 480px;"></div>
+      </div>
+
+      <!-- كرت بنك العبارات والكلمات المكتسبة -->
+      <div class="card">
+        <h2>بنك العبارات والكلمات المكتسبة</h2>
+        <div style="margin-bottom: 12px;">
+          <div style="font-size: 0.8rem; font-weight: bold; color: var(--glow); margin-bottom: 6px;">🎯 عبارات وكلمات هذه المحادثة:</div>
+          <div id="currentSessionWords" style="direction: ltr; text-align: left; display: flex; flex-wrap: wrap; gap: 6px; min-height: 24px;">
+            <span style="color: var(--muted); font-size: 0.8rem; direction: rtl;">ستظهر هنا أهم العبارات بعد التقييم.</span>
+          </div>
+        </div>
+
+        <div style="border-top: 1px solid var(--border); padding-top: 8px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <button class="btn-secondary btn-sm" onclick="toggleArchive()">📂 المحفوظات السابقة (<span id="archiveCount">13</span>)</button>
+            <button class="btn-secondary btn-sm" style="color: var(--danger);" onclick="clearArchive()">مسح السجل</button>
+          </div>
+          <div id="archiveContainer" style="display: none; direction: ltr; text-align: left; margin-top: 6px; flex-wrap: wrap; gap: 6px;">
+        <span class="word-badge">
+          <span onclick="speakInstant('Our project focuses on exploring whether...')">🔊 Our project focuses on exploring whether...</span>
+          <span class="del-btn" onclick="deleteArchiveItem(0)" title="حذف">×</span>
+        </span>
+      
+        <span class="word-badge">
+          <span onclick="speakInstant('First of all, our plan is to conduct comprehensive user studies...')">🔊 First of all, our plan is to conduct comprehensive user studies...</span>
+          <span class="del-btn" onclick="deleteArchiveItem(1)" title="حذف">×</span>
+        </span>
+      
+        <span class="word-badge">
+          <span onclick="speakInstant('I\'m heading to London today')">🔊 I'm heading to London today</span>
+          <span class="del-btn" onclick="deleteArchiveItem(2)" title="حذف">×</span>
+        </span>
+      
+        <span class="word-badge">
+          <span onclick="speakInstant('I\'d love a window seat, please')">🔊 I'd love a window seat, please</span>
+          <span class="del-btn" onclick="deleteArchiveItem(3)" title="حذف">×</span>
+        </span>
+      
+        <span class="word-badge">
+          <span onclick="speakInstant('Is the flight on schedule?')">🔊 Is the flight on schedule?</span>
+          <span class="del-btn" onclick="deleteArchiveItem(4)" title="حذف">×</span>
+        </span>
+      
+        <span class="word-badge">
+          <span onclick="speakInstant('Al Hilal has an incredible winning mentality and dominant team chemistry.')">🔊 Al Hilal has an incredible winning mentality and dominant team chemistry.</span>
+          <span class="del-btn" onclick="deleteArchiveItem(5)" title="حذف">×</span>
+        </span>
+      
+        <span class="word-badge">
+          <span onclick="speakInstant('Salem Al-Dawsari is a clutch player who consistently shines under pressure.')">🔊 Salem Al-Dawsari is a clutch player who consistently shines under pressure.</span>
+          <span class="del-btn" onclick="deleteArchiveItem(6)" title="حذف">×</span>
+        </span>
+      
+        <span class="word-badge">
+          <span onclick="speakInstant('They definitely have what it takes to reclaim the AFC Champions League title this season.')">🔊 They definitely have what it takes to reclaim the AFC Champions League title this season.</span>
+          <span class="del-btn" onclick="deleteArchiveItem(7)" title="حذف">×</span>
+        </span>
+      
+        <span class="word-badge">
+          <span onclick="speakInstant('I would prefer a window seat, please.')">🔊 I would prefer a window seat, please.</span>
+          <span class="del-btn" onclick="deleteArchiveItem(8)" title="حذف">×</span>
+        </span>
+      
+        <span class="word-badge">
+          <span onclick="speakInstant('I have one suitcase to check in and one carry-on bag.')">🔊 I have one suitcase to check in and one carry-on bag.</span>
+          <span class="del-btn" onclick="deleteArchiveItem(9)" title="حذف">×</span>
+        </span>
+      
+        <span class="word-badge">
+          <span onclick="speakInstant('Could you please tell me how to get to Gate B12?')">🔊 Could you please tell me how to get to Gate B12?</span>
+          <span class="del-btn" onclick="deleteArchiveItem(10)" title="حذف">×</span>
+        </span>
+      
+        <span class="word-badge">
+          <span onclick="speakInstant('I have a fever of about 38.5 degrees')">🔊 I have a fever of about 38.5 degrees</span>
+          <span class="del-btn" onclick="deleteArchiveItem(11)" title="حذف">×</span>
+        </span>
+      
+        <span class="word-badge">
+          <span onclick="speakInstant('The fever keeps getting worse')">🔊 The fever keeps getting worse</span>
+          <span class="del-btn" onclick="deleteArchiveItem(12)" title="حذف">×</span>
+        </span>
+      </div>
+        </div>
+      </div>
+
+    </div>
+
+    <footer style="text-align: center; padding: 14px 0 6px; font-size: 0.8rem; color: var(--muted);">
+      Built with <span style="color: #f59e0b;">⚡</span> By: <span style="color: var(--glow); font-weight: 800;">Naif</span>
+    </footer>
+
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- شاشة الحوار الكاملة بملء الشاشة 100% (Fullscreen Immersion Mode) -->
+  <!-- ========================================================================= -->
+  <div id="fullscreenStage">
+    
+    <!-- شريط معلومات الموقف العلوي -->
+    <div style="background: rgba(6, 20, 15, 0.95); border: 1px solid var(--border-strong); border-radius: 12px; padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.5);">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <div id="callerAvatarBox" class="call-avatar-box">👤</div>
+        <div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span id="fsPartnerName" style="font-weight: 800; color: #fff; font-size: 1rem;">موظف المطار (Agent)</span>
+            <span id="partnerModeBadge" class="mode-badge-onsite">🏢 موقف مباشر في الموقع (Face-to-Face)</span>
+          </div>
+          <div id="callStatusBadge" style="font-size: 0.74rem; color: var(--glow); margin-top: 2px;">جاهز للبدء</div>
+        </div>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+        <div class="mini-wave" id="miniWaveBox" title="مؤشر نشاط المايكروفون">
+          <span></span><span></span><span></span><span></span><span></span>
+        </div>
+        <div style="background: var(--inner); border: 1px solid var(--border); border-radius: 8px; padding: 2px 10px; text-align: center;">
+          <div style="font-size: 0.65rem; color: var(--muted);">الوقت</div>
+          <div id="callDurationClock" style="font-family: monospace; font-size: 1.15rem; font-weight: 800; color: #fde68a;">00:00</div>
+        </div>
+
+        <button class="btn-secondary btn-sm" onclick="adjustFontSize(0.1)" title="تكبير الخط">A+</button>
+        <button class="btn-secondary btn-sm" onclick="adjustFontSize(-0.1)" title="تصغير الخط">A-</button>
+        <div id="blurToggle" class="toggle-chip" onclick="toggleBlurText()" title="إخفاء نص المحاور للاعتماد على السمع">تمويه النص</div>
+        <div id="autoNextToggle" class="toggle-chip active" onclick="toggleAutoNext()">انتقال تلقائي</div>
+
+        <button type="button" class="btn-record btn-sm" onclick="stopConversationCall()" style="padding: 6px 14px; font-size: 0.8rem;">
+          ⏹️ إنهاء الموقف وحفظ الصوت
+        </button>
+      </div>
+    </div>
+
+    <!-- مسرح الحوار الممتد في المنتصف -->
+    <div id="chatTheater" class="conversation-box" style="flex: 1; max-height: none; margin: 12px 0; min-height: 280px; border-color: var(--border-strong);">
+        <div style="font-size: 0.82rem; color: var(--muted); background: var(--inner); padding: 8px 10px; border-radius: 8px; border-right: 3px solid var(--glow);">
+          🎯 <b>المهمة:</b> سجّل رحلتك، اطلب مقعداً بجانب النافذة، واسأل عن بوابة الصعود. — <span style="color:#a7f3d0;">اضغط (أنهيت ردي / مسطرة Space) عند انتهاء إجابتك.</span>
+        </div>
+        
+      <div class="bubble bubble-ai" id="ai_b_0">
+        <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.75rem; color:var(--glow); margin-bottom:6px; border-bottom:1px solid rgba(52,211,153,0.15); padding-bottom:4px;">
+          <div style="display:flex; align-items:center; gap:6px;">
+            <span style="background:rgba(16,185,129,0.2); border-radius:50%; width:22px; height:22px; display:inline-flex; align-items:center; justify-content:center; font-size:0.8rem;">🤖</span>
+            <span style="font-weight:800; color:#fff;">موظف المطار (Agent)</span>
+            <span style="color:var(--muted); font-size:0.7rem;">• سؤال 1</span>
+          </div>
+          <div style="display:flex; gap:4px;">
+            <button class="btn-secondary btn-sm" style="padding:2px 8px; border-radius:12px; font-size:0.72rem;" onclick="speakSentence('Good morning! Welcome to the check-in desk. Where are you flying to today, and may I see your passport?', false)">🔊 استماع</button>
+            <button class="btn-secondary btn-sm" style="padding:2px 8px; border-radius:12px; font-size:0.72rem;" onclick="speakSentence('Good morning! Welcome to the check-in desk. Where are you flying to today, and may I see your passport?', true)">🐢 ببطء</button>
+          </div>
+        </div>
+        <div class="en-text " style="font-size:1.1rem; padding:2px 0;" onclick="this.classList.remove('blurred')">
+          <span class="word-span" onclick="event.stopPropagation(); handleWordClick('Good', 'Good')">Good</span> <span class="word-span" onclick="event.stopPropagation(); handleWordClick('morning', 'morning!')">morning!</span> <span class="word-span" onclick="event.stopPropagation(); handleWordClick('Welcome', 'Welcome')">Welcome</span> <span class="word-span" onclick="event.stopPropagation(); handleWordClick('to', 'to')">to</span> <span class="word-span" onclick="event.stopPropagation(); handleWordClick('the', 'the')">the</span> <span class="word-span" onclick="event.stopPropagation(); handleWordClick('checkin', 'check-in')">check-in</span> <span class="word-span" onclick="event.stopPropagation(); handleWordClick('desk', 'desk.')">desk.</span> <span class="word-span" onclick="event.stopPropagation(); handleWordClick('Where', 'Where')">Where</span> <span class="word-span" onclick="event.stopPropagation(); handleWordClick('are', 'are')">are</span> <span class="word-span" onclick="event.stopPropagation(); handleWordClick('you', 'you')">you</span> <span class="word-span" onclick="event.stopPropagation(); handleWordClick('flying', 'flying')">flying</span> <span class="word-span" onclick="event.stopPropagation(); handleWordClick('to', 'to')">to</span> <span class="word-span" onclick="event.stopPropagation(); handleWordClick('today', 'today,')">today,</span> <span class="word-span" onclick="event.stopPropagation(); handleWordClick('and', 'and')">and</span> <span class="word-span" onclick="event.stopPropagation(); handleWordClick('may', 'may')">may</span> <span class="word-span" onclick="event.stopPropagation(); handleWordClick('I', 'I')">I</span> <span class="word-span" onclick="event.stopPropagation(); handleWordClick('see', 'see')">see</span> <span class="word-span" onclick="event.stopPropagation(); handleWordClick('your', 'your')">your</span> <span class="word-span" onclick="event.stopPropagation(); handleWordClick('passport', 'passport?')">passport?</span>
+        </div>
+      </div>
+    
+      </div>
+
+    <!-- الشريط السفلي: التحكم بالدور والمؤقت والملقّن المساعد والقاموس -->
+    <div style="display: flex; flex-direction: column; gap: 8px;">
+      
+      <!-- شريط التحكم السفلي العائم (Floating Bottom Action Dock) -->
+      <div id="activeTurnBar" style="display: none; gap: 8px; align-items: center; justify-content: center; background: rgba(6, 20, 15, 0.9); padding: 8px 14px; border-radius: 26px; border: 1px solid var(--border); box-shadow: 0 4px 20px rgba(0,0,0,0.4); flex-wrap: wrap;">
+        <button class="btn-gold" style="flex: 2; padding: 10px 18px; border-radius: 22px; font-weight: 800;" onclick="finishUserTurnAndAdvance()" title="يمكنك الضغط على مسطرة المسافة Space">
+          ⏭️ أنهيت ردي (مسطرة Space)
+        </button>
+        <button class="btn-secondary btn-sm" onclick="repeatCurrentQuestion(true)" style="padding: 10px 14px; border-radius: 20px;">
+          🐢 أعد السؤال ببطء
+        </button>
+        <button class="btn-record btn-sm" onclick="stopConversationCall()" style="padding: 10px 16px; border-radius: 20px;">
+          📞 إنهاء وحفظ
+        </button>
+      </div>
+
+      <!-- شريط العبارات المساعدة (المُلقّن) -->
+      <div id="helperBar" class="helper-bar" style="margin: 0;">
+        <div style="color: var(--muted); margin-bottom: 4px; font-size: 0.76rem;">
+          💡 <b>تلميحات سريعة للرد</b> (اضغط على أي كلمة لنطقها وترجمتها):
+        </div>
+        <div id="hintsContainer">
+      <span class="hint-chip"><span class="word-span" onclick="event.stopPropagation(); handleWordClick('I', 'I')">I</span> <span class="word-span" onclick="event.stopPropagation(); handleWordClick('am', 'am')">am</span> <span class="word-span" onclick="event.stopPropagation(); handleWordClick('flying', 'flying')">flying</span> <span class="word-span" onclick="event.stopPropagation(); handleWordClick('to', 'to')">to</span> <span class="word-span" onclick="event.stopPropagation(); handleWordClick('London', 'London')">London</span> <span class="word-span" onclick="event.stopPropagation(); handleWordClick('today', 'today.')">today.</span></span>
+    
+      <span class="hint-chip"><span class="word-span" onclick="event.stopPropagation(); handleWordClick('Here', 'Here')">Here</span> <span class="word-span" onclick="event.stopPropagation(); handleWordClick('is', 'is')">is</span> <span class="word-span" onclick="event.stopPropagation(); handleWordClick('my', 'my')">my</span> <span class="word-span" onclick="event.stopPropagation(); handleWordClick('passport', 'passport.')">passport.</span></span>
+    
+      <span class="hint-chip"><span class="word-span" onclick="event.stopPropagation(); handleWordClick('destination', 'destination')">destination</span></span>
+    
+      <span class="hint-chip"><span class="word-span" onclick="event.stopPropagation(); handleWordClick('direct', 'direct')">direct</span> <span class="word-span" onclick="event.stopPropagation(); handleWordClick('flight', 'flight')">flight</span></span>
+    </div>
+      </div>
+
+      <!-- بطاقة القاموس السريعة -->
+      <div id="tooltip" class="tooltip-card" style="margin: 0px; display: none;"></div>
+    </div>
+
+  </div>
+
+  <!-- نافذة تفاصيل الكلمة الكاملة (القاموس الموسع) -->
+<div id="translationModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); backdrop-filter:blur(4px); z-index:9999; align-items:center; justify-content:center; padding:14px;" onclick="if(event.target===this) closeTranslationModal()">
+  <div style="background:#08221a; border:1px solid var(--glow); border-radius:12px; width:100%; max-width:500px; overflow:hidden; display:flex; flex-direction:column; max-height:86vh;">
+    <div style="background:#0d3327; padding:10px 14px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
+      <span id="transModalTitle" style="font-weight:800; color:#fff; font-size:1rem; direction:ltr;">Word</span>
+      <button class="btn-secondary btn-sm" onclick="closeTranslationModal()">✕</button>
+    </div>
+    <div id="transModalBody" style="padding:14px; overflow-y:auto; font-size:0.85rem; line-height:1.6;"></div>
+  </div>
+</div>
+
+<!-- نافذة الدليل السريع: كيف يعمل المدرب؟ -->
+<div id="quickHelpModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.75); backdrop-filter:blur(5px); z-index:10001; align-items:center; justify-content:center; padding:14px;" onclick="if(event.target===this) toggleQuickHelp()">
+  <div style="background:#08221a; border:1px solid var(--glow); border-radius:12px; width:100%; max-width:540px; overflow:hidden; display:flex; flex-direction:column; max-height:88vh;">
+    <div style="background:#0d3327; padding:10px 14px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
+      <span style="font-weight:800; color:#fff; font-size:0.95rem;">💡 كيف يعمل مدرب المحادثة التفاعلي؟</span>
+      <button class="btn-secondary btn-sm" onclick="toggleQuickHelp()">✕</button>
+    </div>
+    <div style="padding:14px; overflow-y:auto; font-size:0.83rem; line-height:1.65; display:flex; flex-direction:column; gap:8px;">
+      <div style="background:var(--inner); padding:8px 10px; border-radius:8px; border-right:3px solid var(--glow);">
+        <b>1. اختر الموقف:</b> حدد أحد السيناريوهات الجاهزة، أو اختر (قسم مخصص بالذكاء) لتوليد حوار وفق موضوعك وعمقه المفضل.
+      </div>
+      <div style="background:var(--inner); padding:8px 10px; border-radius:8px; border-right:3px solid var(--info);">
+        <b>2. حدد سرعة الرد:</b> اختر مدة الرد (3 ثوانٍ للإحماء السريع، 8 ثوانٍ متوسط، 15 ثانية للتفصيل والتوسع).
+      </div>
+      <div style="background:var(--inner); padding:8px 10px; border-radius:8px; border-right:3px solid var(--warning);">
+        <b>3. تحدث براحة:</b> استمع لسؤال المحاور ثم ابدأ كلامك؛ سينتقل الدور تلقائياً عند انتهاء المؤقت أو بالضغط على (مسطرة المسافة Space).
+      </div>
+      <div style="background:var(--inner); padding:8px 10px; border-radius:8px; border-right:3px solid var(--purple);">
+        <b>4. احصل على التقييم:</b> عند إنهاء المكالمة ينزل ملفك الصوتي في التنزيلات، انسخ البرومبت وضعهما في الذكاء الاصطناعي، ثم انسخ كود النتيجة وضعه في خانة التقييم بالأسفل.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- نافذة دليل الأحرف الصوتية وعبارات المحادثة -->
+<div id="phoneticGuideModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); backdrop-filter:blur(4px); z-index:10000; align-items:center; justify-content:center; padding:14px;" onclick="if(event.target===this) togglePhoneticGuide()">
+  <div style="background:#08221a; border:1px solid var(--glow); border-radius:12px; width:100%; max-width:600px; overflow:hidden; display:flex; flex-direction:column; max-height:86vh;">
+    <div style="background:#0d3327; padding:10px 14px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
+      <span style="font-weight:800; color:#fff; font-size:0.95rem;">🔤 دليل الرموز الصوتية (IPA) ومفاتيح المحادثة</span>
+      <button class="btn-secondary btn-sm" onclick="togglePhoneticGuide()">✕</button>
+    </div>
+    <div style="padding:14px; overflow-y:auto; font-size:0.8rem; line-height:1.6;">
+      <div style="font-weight:bold; color:var(--glow); margin-bottom:6px;">🔹 أشهر الرموز الصوتية في القواميس:</div>
+      <table style="width:100%; border-collapse:collapse; margin-bottom:12px; background:var(--inner); border-radius:6px; overflow:hidden;">
+        <tbody><tr style="background:#0d3327; color:#fff;"><th style="padding:6px;">الرمز</th><th style="padding:6px;">الصوت بالعربي</th><th style="padding:6px; direction:ltr; text-align:left;">Examples</th></tr>
+        <tr><td style="padding:5px 8px; color:#34d399; font-family:monospace;">/θ/ &amp; /ð/</td><td style="padding:5px 8px;">ث (thin) / ذ (this)</td><td style="padding:5px 8px; direction:ltr;"><b>th</b>ink, mo<b>th</b>er</td></tr>
+        <tr><td style="padding:5px 8px; color:#34d399; font-family:monospace;">/ʃ/ &amp; /tʃ/</td><td style="padding:5px 8px;">ش (ship) / تـش (chat)</td><td style="padding:5px 8px; direction:ltr;"><b>sh</b>e, ma<b>tch</b></td></tr>
+        <tr><td style="padding:5px 8px; color:#34d399; font-family:monospace;">/ə/ (Schwa)</td><td style="padding:5px 8px;">فتحة خافتة سريعة جداً</td><td style="padding:5px 8px; direction:ltr;"><b>a</b>bout, teach<b>er</b></td></tr>
+        <tr><td style="padding:5px 8px; color:#34d399; font-family:monospace;">/ŋ/</td><td style="padding:5px 8px;">غُنّة أنفية بدون نطق g</td><td style="padding:5px 8px; direction:ltr;">speaki<b>ng</b>, goi<b>ng</b></td></tr>
+      </tbody></table>
+      <div style="font-weight:bold; color:#fde68a; margin-bottom:4px;">🔸 عبارات ذكية لكسب الوقت أثناء التحدث:</div>
+      <div style="background:var(--inner); padding:8px; border-radius:6px; direction:ltr; text-align:left; color:#d1fae5;">
+        • "That's a good question, let me think for a second..."<br>
+        • "Well, from my personal perspective, I'd say..."<br>
+        • "Could you please repeat that a little slower?"
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ============================================================================
+  // 1. قائمة السيناريوهات الشاملة المدمجة + خيار القسم المخصص
+  // ============================================================================
+  const SCENARIOS = [
+    {
+      group: "✈️ السفر والمطارات والفنادق",
+      id: "airport",
+      title: "تسجيل الدخول في المطار واختيار المقعد (Airport Check-in)",
+      partner: "موظف المطار (Agent)",
+      mission: "سجّل رحلتك، اطلب مقعداً بجانب النافذة، واسأل عن بوابة الصعود.",
+      turns: [
+        {
+          ai: "Good morning! Welcome to the check-in desk. Where are you flying to today, and may I see your passport?",
+          hints: ["I am flying to London today.", "Here is my passport.", "destination", "direct flight"]
+        },
+        {
+          ai: "Thank you! Are you checking in any suitcases today, and would you prefer a window seat or an aisle seat?",
+          hints: ["I have one suitcase to check in.", "I would prefer a window seat, please.", "aisle seat", "carry-on bag"]
+        },
+        {
+          ai: "All set! Your boarding pass is ready at Gate B12. Do you have any questions before you head to security?",
+          hints: ["What time does boarding start?", "Is the flight on schedule today?", "Thank you so much for your help!"]
+        }
+      ]
+    },
+    {
+      group: "✈️ السفر والمطارات والفنادق",
+      id: "hotel",
+      title: "حجز واستلام غرفة في الفندق (Hotel Reception)",
+      partner: "موظف الاستقبال (Receptionist)",
+      mission: "أكد حجزك، اطلب غرفة هادئة في طابق مرتفع، واسأل عن موعد الإفطار.",
+      turns: [
+        {
+          ai: "Welcome to the Emerald Hotel! How may I assist you with your check-in today?",
+          hints: ["Hello! I have a reservation for three nights.", "Here is my booking confirmation.", "single room / suite"]
+        },
+        {
+          ai: "I found your reservation! Would you prefer a room on a high floor, and do you have any special requests?",
+          hints: ["Yes, I would love a quiet room with a nice view.", "Could I also get a late check-out?", "high floor"]
+        },
+        {
+          ai: "Certainly! Here is your room key. Is there anything you would like to know about breakfast or Wi-Fi?",
+          hints: ["What time is breakfast served in the morning?", "What is the Wi-Fi password? Thank you!"]
+        }
+      ]
+    },
+    {
+      group: "☕ المطاعم والمقاهي والتسوق",
+      id: "cafe",
+      title: "طلب قهوة وحلوى في مقهى مختص (Coffee Shop Order)",
+      partner: "الباريستا (Barista)",
+      mission: "اطلب مشروبك المفضل، حدد الحجم ونوع الحليب، واطلب قطعة حلوى.",
+      turns: [
+        {
+          ai: "Hi there! Welcome in. Would you like to order something hot or iced today?",
+          hints: ["I would like an iced latte, please.", "Could I get a hot cappuccino, please?", "freshly brewed"]
+        },
+        {
+          ai: "Great choice! What size would you like, and do you prefer regular milk or oat milk?",
+          hints: ["Medium size with regular milk, please.", "Large size with less sugar, please."]
+        },
+        {
+          ai: "Would you like any pastries with your coffee, and will that be for here or to go?",
+          hints: ["I will also take a chocolate croissant, for here please.", "Nothing else, thank you. I will pay by card."]
+        }
+      ]
+    },
+    {
+      group: "☕ المطاعم والمقاهي والتسوق",
+      id: "tech_store",
+      title: "شراء لابتوب أو جوال من متجر تقني (Electronics Store)",
+      partner: "مستشار المبيعات (Tech Advisor)",
+      mission: "اشرح استخدامك للجهاز، واسأل عن البطارية والمواصفات والضمان.",
+      turns: [
+        {
+          ai: "Hello! Welcome to the Tech Store. What kind of device are you looking for today, and how will you use it?",
+          hints: ["I am looking for a lightweight laptop for teaching and programming.", "I need fast performance and a bright screen."]
+        },
+        {
+          ai: "This new model has a fast processor and 16GB RAM. Do you have any questions about the battery life or warranty?",
+          hints: ["How long does the battery last on a single charge?", "Does it come with a two-year warranty?"]
+        }
+      ]
+    },
+    {
+      group: "🎓 التعليم والعمل والنقاش الحر",
+      id: "project_pitch",
+      title: "عرض مشروع تقني أو تعليمي أمام لجنة تحكيم (Project Pitch)",
+      partner: "لجنة التحكيم (Judge)",
+      mission: "اشرح فكرة مشروعك، المشكلة التي يحلها، وخطتك لتطويره مستقبلاً.",
+      turns: [
+        {
+          ai: "Welcome! We are excited to learn about your project. Could you introduce your main idea and the problem it solves?",
+          hints: ["My project is an interactive educational platform for students.", "It makes learning fun and provides instant feedback."]
+        },
+        {
+          ai: "Very impressive! What makes your solution unique compared to traditional learning methods?",
+          hints: ["It combines gamification with smart self-assessment.", "Students can practice anytime without complex setup."]
+        },
+        {
+          ai: "What are your future plans to expand or improve this project?",
+          hints: ["I plan to add more interactive stages and share it with more schools.", "Thank you for your time!"]
+        }
+      ]
+    },
+    {
+      group: "🎓 التعليم والعمل والنقاش الحر",
+      id: "daily_intro",
+      title: "تعارف وحديث ودي عن الهوايات والمدينة (Introducing Yourself)",
+      partner: "صديق جديد (Alex)",
+      mission: "عرّف بنفسك، تحدث عن مدينتك وعملك، وشارك هواياتك المفضلة.",
+      turns: [
+        {
+          ai: "Hi! It is great to meet you. Tell me a little bit about yourself and where you live!",
+          hints: ["Nice to meet you! My name is... and I live in Hail.", "I work as an English teacher."]
+        },
+        {
+          ai: "That sounds wonderful! What do you enjoy doing in your free time?",
+          hints: ["In my free time, I enjoy designing web tools, reading, and watching movies.", "I love spending time with my family."]
+        },
+        {
+          ai: "What is the best thing about your city that every visitor should see or try?",
+          hints: ["Our city is famous for its generous people, beautiful mountains, and delicious traditional food!"]
+        }
+      ]
+    },
+    {
+      group: "🩺 الصحة والعيادة",
+      id: "clinic",
+      title: "زيارة الطبيب ووصف الأعراض الصحية (Doctor's Clinic)",
+      partner: "الطبيب (Dr. Carter)",
+      mission: "صف الأعراض التي تشعر بها، منذ متى بدأت، واسأل عن العلاج المناسب.",
+      turns: [
+        {
+          ai: "Hello! Please have a seat. How have you been feeling, and what symptoms do you have today?",
+          hints: ["Hello Doctor. I have had a sore throat and a mild headache since yesterday.", "I also feel a bit tired."]
+        },
+        {
+          ai: "Have you had any fever, and have you taken any medicine so far?",
+          hints: ["I had a slight fever last night, and I only drank warm liquids.", "How many days of rest do I need?"]
+        }
+      ]
+    }
+  ];
+
+  // ============================================================================
+  // 2. المتغيرات العامة وحفظ مسار المايكروفون لمنع تكرار نافذة الإذن نهائياً
+  // ============================================================================
+  let activeScenario = SCENARIOS[0];
+  let currentTurnIdx = 0;
+  let isCallRunning = false;
+  let isBlur = false;
+  let isAutoNext = true;
+  let currentFontRem = 1.1;
+  let availableVoices = [];
+
+  // متغيرات المايكروفون المستمر (Persistent Stream لمنع تكرار نافذة السماح في file:///)
+  let persistentStream = null;
+  let mediaRecorder = null;
+  let audioChunks = [];
+  let audioContext = null;
+  let analyser = null;
+  let waveFrame = null;
+
+  let callElapsedSeconds = 0;
+  let callTimer = null;
+  let turnStartSec = 0;
+  let turnTimings = [];
+  let userSpokeInThisTurn = false;
+  let silenceStartMs = null;
+
+  // ============================================================================
+  // 3. تهيئة الصفحة والأصوات والقوائم
+  // ============================================================================
+  window.addEventListener('DOMContentLoaded', () => {
+    buildScenarioDropdown();
+    renderArchiveBank();
+  });
+
+  function populateVoices() {
+    if (!('speechSynthesis' in window)) return;
+    const all = window.speechSynthesis.getVoices().filter(v => v.lang.startsWith('en'));
+    all.sort((a, b) => {
+      const aNat = a.name.includes('Natural') || a.name.includes('Online');
+      const bNat = b.name.includes('Natural') || b.name.includes('Online');
+      return (bNat ? 1 : 0) - (aNat ? 1 : 0);
+    });
+    availableVoices = all;
+    const sel = document.getElementById('voiceSelect');
+    sel.innerHTML = '';
+    availableVoices.forEach((v, i) => {
+      const opt = document.createElement('option');
+      opt.value = i;
+      const isNat = v.name.includes('Natural') || v.name.includes('Online');
+      opt.textContent = `${isNat ? '⭐ ' : ''}${v.name} (${v.lang})`;
+      sel.appendChild(opt);
+    });
+  }
+
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.onvoiceschanged = populateVoices;
+    populateVoices();
+  }
+
+  document.getElementById('rateRange').addEventListener('input', (e) => {
+    document.getElementById('rateVal').textContent = `${e.target.value}x`;
+  });
+
+  function handleAudioModeChange() {
+    const mode = document.getElementById('audioModeSelect').value;
+    document.getElementById('voiceWrapper').style.display = (mode === 'tts') ? 'inline-flex' : 'none';
+  }
+
+  function buildScenarioDropdown() {
+    const sel = document.getElementById('scenarioSelect');
+    sel.innerHTML = '';
+    const groups = {};
+    SCENARIOS.forEach((s, idx) => {
+      if (!groups[s.group]) groups[s.group] = [];
+      groups[s.group].push({ ...s, idx });
+    });
+
+    Object.keys(groups).forEach(gName => {
+      const optGroup = document.createElement('optgroup');
+      optGroup.label = gName;
+      groups[gName].forEach(item => {
+        const opt = document.createElement('option');
+        opt.value = item.idx;
+        opt.textContent = item.title;
+        optGroup.appendChild(opt);
+      });
+      sel.appendChild(optGroup);
+    });
+
+    // إضافة خياري التخصيص المستقلين (توليد بالذكاء الاصطناعي + كتابة يدوية)
+    const customGroup = document.createElement('optgroup');
+    customGroup.label = "✨ خيارات التخصيص";
+
+    const customAiOpt = document.createElement('option');
+    customAiOpt.value = "custom_ai";
+    customAiOpt.textContent = "🤖 قسم مخصص: توليد بالذكاء الاصطناعي (AI Custom)...";
+    customGroup.appendChild(customAiOpt);
+
+    const customManualOpt = document.createElement('option');
+    customManualOpt.value = "custom_manual";
+    customManualOpt.textContent = "✍️ قسم مخصص: كتابة يدوية خاصة (Manual Custom)...";
+    customGroup.appendChild(customManualOpt);
+
+    sel.appendChild(customGroup);
+
+    handleScenarioChange();
+  }
+
+  function handleScenarioChange() {
+    if (isCallRunning) stopConversationCall();
+    const val = document.getElementById('scenarioSelect').value;
+    const aiBox = document.getElementById('customAiBox');
+    const manualBox = document.getElementById('customManualBox');
+
+    if (aiBox) aiBox.style.display = (val === 'custom_ai') ? 'block' : 'none';
+    if (manualBox) manualBox.style.display = (val === 'custom_manual') ? 'block' : 'none';
+
+    if (val === 'custom_ai') {
+      if (!activeScenario || activeScenario.id !== 'custom_ai') {
+        const currentPaste = document.getElementById('customAiPasteArea')?.value.trim();
+        if (currentPaste) {
+          parseAndApplyAiScenario(false);
+        } else {
+          activeScenario = {
+            id: "custom_ai",
+            title: "حوار مخصص بالذكاء الاصطناعي",
+            partner: "المحاور الذكي (AI Partner)",
+            mode: "call",
+            mission: "حدد عمق المقابلة، انسخ البرومبت والصق رد الذكاء للبدء فوراً.",
+            turns: [
+              {
+                ai: "Welcome! Once you generate your interview scenario using the prompt above and paste it, your conversation turns will appear here.",
+                hints: ["I am ready to start.", "Let's begin the interview.", "Sounds great!"]
+              }
+            ]
+          };
+          resetConversationPreview();
+        }
+      }
+    } else if (val === 'custom_manual') {
+      if (!document.getElementById('customManualQuestionsText').value.trim()) {
+        resetManualSample();
+      }
+      applyManualCustomQuestions();
+    } else {
+      activeScenario = SCENARIOS[parseInt(val, 10)] || SCENARIOS[0];
+      resetConversationPreview();
+    }
+    updateModeUI();
+  }
+
+  function updateModeUI() {
+    const selMode = document.getElementById('scenarioModeSelect')?.value || 'auto';
+    let isCall = false;
+
+    if (selMode === 'call') {
+      isCall = true;
+    } else if (selMode === 'onsite') {
+      isCall = false;
+    } else {
+      // الوضع التلقائي: المطار، الفندق، المقهى، العيادة، المتجر، المقابلة = في الموقع (On-Site)
+      const callKeywords = ['phone', 'call', 'support', 'booking_agent', 'remote'];
+      const idStr = (activeScenario.id || '').toLowerCase();
+      isCall = callKeywords.some(k => idStr.includes(k));
+    }
+
+    const badge = document.getElementById('partnerModeBadge');
+    const avatar = document.getElementById('callerAvatarBox');
+    const partnerName = document.getElementById('fsPartnerName');
+
+    if (partnerName) partnerName.textContent = activeScenario.partner || 'المحاور';
+
+    if (badge) {
+      if (isCall) {
+        badge.className = 'mode-badge-call';
+        badge.textContent = '📞 مكالمة هاتفية عن بُعد';
+      } else {
+        badge.className = 'mode-badge-onsite';
+        badge.textContent = '🏢 موقف مباشر في الموقع (Face-to-Face)';
+      }
+    }
+
+    if (avatar) {
+      avatar.textContent = isCall ? '📞' : '👤';
+    }
+  }
+
+  function updatePromptPreviewHint() {
+    const depth = document.getElementById('aiInterviewDepthSelect')?.value || 'short';
+    const notice = document.getElementById('promptDepthNotice');
+    if (!notice) return;
+    if (depth === 'short') {
+      notice.innerHTML = `سيطلب البرومبت تلقائياً <b>(3 أسئلة متدرجة: إحماء وسؤال محوري وخاتمة)</b> مع 3 تلميحات لكل دور.`;
+    } else if (depth === 'medium') {
+      notice.innerHTML = `سيطلب البرومبت تلقائياً <b>(5 أسئلة متسلسلة: افتتاحية، استيضاح وتفاصيل، تجربة شخصية، ورأي)</b> مع 3 تلميحات لكل دور.`;
+    } else {
+      notice.innerHTML = `سيطلب البرومبت تلقائياً <b>(7 أسئلة معمقة: سيناريوهات وافتراضات ماذا لو، تبرير قرارات، ونقد CEFR/IELTS)</b> مع 3 تلميحات لكل دور.`;
+    }
+  }
+
+  function setQuickAiTopic(topicText) {
+    const input = document.getElementById('customAiTopicInput');
+    if (input) {
+      input.value = topicText;
+      copyAiGenerationPrompt();
+    }
+  }
+
+  function copyAiGenerationPrompt() {
+    const topic = document.getElementById('customAiTopicInput').value.trim() || 'A natural English conversation';
+    const depth = document.getElementById('aiInterviewDepthSelect')?.value || 'short';
+
+    const depthConfigs = {
+      short: {
+        turnsCount: 3,
+        styleDesc: "Short, engaging 3-turn sequential interview/conversation (Turn 1: Warm-up/Icebreaker, Turn 2: Core situational question, Turn 3: Personal view/wrap-up)."
+      },
+      medium: {
+        turnsCount: 5,
+        styleDesc: "Standard 5-turn sequential interview (Turn 1: Warm-up intro, Turn 2: Follow-up exploring specific details, Turn 3: Concrete personal experience, Turn 4: Preference or reasoning, Turn 5: Concluding reflection)."
+      },
+      long: {
+        turnsCount: 7,
+        styleDesc: "In-depth, professional 7-turn sequential interview matching CEFR/IELTS criteria (Turn 1: Introduction, Turn 2: Background, Turn 3: Situational 'What if...' scenario, Turn 4: Problem-solving & decision justification, Turn 5: Critical comparison, Turn 6: Lessons learned, Turn 7: Forward-looking conclusion)."
+      }
+    };
+
+    const cfg = depthConfigs[depth] || depthConfigs.short;
+
+    const promptText = `Act as an expert ESL conversation coach and interview examiner.
+Topic: "${topic}".
+Format: ${cfg.styleDesc}
+Total turns required: Exactly ${cfg.turnsCount} turns.
+
+Rules:
+1. Every turn MUST have one realistic, spoken question/statement in clear English.
+2. Every turn MUST provide exactly 3 natural, short response hints for the speaker.
+3. Keep the tone authentic, conversational, and progressive.
+
+Output ONLY in valid JSON with NO markdown commentary, NO extra keys, NO comments:
+{
+  "title": "${topic}",
+  "partner": "AI Conversation Partner",
+  "mission": "Practice natural fluency about ${topic}",
+  "turns": [
+    {
+      "ai": "Question 1 text here?",
+      "hints": ["Natural hint phrase 1", "Natural hint phrase 2", "Natural hint phrase 3"]
+    }
+  ]
+}`;
+
+    navigator.clipboard.writeText(promptText).then(() => {
+      alert(`✅ تم نسخ برومبت التوليد بنجاح للموضوع: ("${topic}")!\nنمط المقابلة: [${depth === 'short' ? 'قصيرة: 3 أسئلة' : (depth === 'medium' ? 'متوسطة: 5 أسئلة' : 'طويلة: 7 أسئلة')}]\n\n1. الصقه في شات الذكاء الاصطناعي (ChatGPT أو Gemini).\n2. انسخ الرد بالكامل والصقه في المربع أدناه ثم اضغط (تحليل النص واعتماد الحوار).`);
+    }).catch(() => {
+      prompt('انسخ برومبت التوليد التالي يدوياً:', promptText);
+    });
+  }
+
+  // المحلل الذكي المرن (Smart Paste Parser) للتعرف على JSON والقوائم المرقمة وتوليد التلميحات
+  let aiAutoParseTimer = null;
+
+  function handleCustomAiInput() {
+    const raw = document.getElementById('customAiPasteArea')?.value.trim();
+    const btn = document.getElementById('applyAiScenarioBtn');
+    if (!raw) {
+      if (btn) {
+        btn.classList.remove('prompt-beacon-active');
+        btn.innerHTML = '🚀 تحليل النص واعتماد الحوار للبدء';
+      }
+      return;
+    }
+
+    // تفعيل الوميض الضوئي فور بدء اللصق
+    if (btn) {
+      btn.classList.add('prompt-beacon-active');
+      btn.innerHTML = '⏳ جاري التحليل والاعتماد التلقائي...';
+    }
+
+    // اعتماد تلقائي فوري بعد اللصق بـ 400ms
+    clearTimeout(aiAutoParseTimer);
+    aiAutoParseTimer = setTimeout(() => {
+      parseAndApplyAiScenario(false);
+    }, 400);
+  }
+
+  function parseAndApplyAiScenario(showAlert = true) {
+    const raw = document.getElementById('customAiPasteArea').value.trim();
+    const fallbackTopic = document.getElementById('customAiTopicInput').value.trim() || 'محادثة مخصصة (AI Topic)';
+
+    if (!raw) {
+      if (showAlert) alert('يرجى لصق الرد الناتج من الذكاء الاصطناعي أولاً.');
+      return;
+    }
+
+    let parsedTurns = [];
+    let scenarioTitle = fallbackTopic;
+    let partnerName = "المحاور الذكي (AI Partner)";
+    let missionText = `التحدث بطلاقة وتفاعل طبيعي حول (${fallbackTopic}).`;
+
+    // 1. محاولة قراءة JSON
+    try {
+      const cleanJson = raw.replace(/```(?:json)?/gi, '').replace(/\/\/.*$/gm, '').trim();
+      const obj = JSON.parse(cleanJson);
+      if (obj && Array.isArray(obj.turns) && obj.turns.length > 0) {
+        scenarioTitle = obj.title || scenarioTitle;
+        partnerName = obj.partner || partnerName;
+        missionText = obj.mission || missionText;
+        parsedTurns = obj.turns.map(t => ({
+          ai: t.ai || t.question || t.q || 'Hello!',
+          hints: (Array.isArray(t.hints) && t.hints.length) ? t.hints.slice(0, 4) : ["Well, I think...", "From my experience...", "For example..."]
+        }));
+      }
+    } catch (_) {}
+
+    // 2. إذا لم يكن JSON صالحاً، المحلل الذكي للنصوص والقوائم (Smart Regex Parser)
+    if (!parsedTurns.length) {
+      const lines = raw.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+      let currentTurn = null;
+
+      lines.forEach(line => {
+        const qMatch = line.match(/^(?:(?:\d+[\.\-\)]|\bQ\d*[:\.\-]|Question\s*\d*[:\.\-]|Partner[:\-])\s*)(.*)/i);
+        const isHintLine = /^(?:hints?|clues?|suggested|تلميحات|options?)[:\-]/i.test(line) || /^[\-\*\•]\s*(?:hint[:\-])?/i.test(line);
+
+        if (qMatch && !isHintLine) {
+          if (currentTurn) parsedTurns.push(currentTurn);
+          currentTurn = { ai: qMatch[1].trim(), hints: [] };
+        } else if (isHintLine && currentTurn) {
+          const cleanHints = line.replace(/^(?:hints?|clues?|suggested|تلميحات|options?)[:\-]\s*/i, '').replace(/^[\-\*\•]\s*/, '');
+          const splitted = cleanHints.split(/[,;\/|•\-]+/).map(h => h.trim().replace(/^["']|["']$/g, '')).filter(h => h.length > 1);
+          if (splitted.length) currentTurn.hints.push(...splitted);
+        } else if (!currentTurn && line.length > 6 && !isHintLine) {
+          currentTurn = { ai: line.replace(/^["']|["']$/g, ''), hints: [] };
+        } else if (currentTurn && !isHintLine && line.endsWith('?')) {
+          parsedTurns.push(currentTurn);
+          currentTurn = { ai: line.replace(/^["']|["']$/g, ''), hints: [] };
+        }
+      });
+
+      if (currentTurn) parsedTurns.push(currentTurn);
+
+      // بديل إضافي لو كانت أسطر عادية
+      if (!parsedTurns.length) {
+        const rawLines = lines.filter(l => l.length > 4 && !/^[\[\{\]\}\#]/.test(l));
+        rawLines.forEach(l => {
+          parsedTurns.push({
+            ai: l.replace(/^\d+[\.\-\)]\s*/, '').replace(/^["']|["']$/g, ''),
+            hints: ["Well, in my view...", "From my personal experience...", "For instance, I think..."]
+          });
+        });
+      }
+    }
+
+    // ضمان وجود 3 تلميحات مفتاحية على الأقل لكل سؤال
+    parsedTurns.forEach((t, i) => {
+      if (!t.hints || !t.hints.length) {
+        t.hints = ["Well, certainly...", "In my opinion...", "That sounds great!"];
+      } else {
+        const defaultPool = ["Well, from my perspective...", "For instance, usually...", "To be honest..."];
+        while (t.hints.length < 3) {
+          t.hints.push(defaultPool[t.hints.length % defaultPool.length]);
+        }
+      }
+    });
+
+    if (!parsedTurns.length) {
+      if (showAlert) alert('لم نتمكن من استخراج الأسئلة من النص الملصق. تأكد من نسخ رد الذكاء كاملاً.');
+      return;
+    }
+
+    activeScenario = {
+      id: "custom_ai",
+      title: `حوار ذكي: ${scenarioTitle}`,
+      partner: partnerName,
+      mission: missionText,
+      turns: parsedTurns
+    };
+
+    resetConversationPreview();
+
+    // تحديث حالة الزر باللون الزمردي فور اكتمال الاعتماد
+    const btn = document.getElementById('applyAiScenarioBtn');
+    if (btn) {
+      btn.classList.remove('prompt-beacon-active');
+      btn.innerHTML = `✔️ تم اعتماد (${parsedTurns.length}) أسئلة تلقائياً! 🚀`;
+      btn.style.background = 'linear-gradient(135deg, #059669, #10b981)';
+    }
+
+    if (showAlert) alert(`🎉 تم التعرف بنجاح على (${parsedTurns.length}) أدوار حوارية مع تلميحات الرد الملونة! جاهز للبدء الآن.`);
+  }
+
+  function resetManualSample() {
+    const topic = document.getElementById('customManualTopicInput').value.trim() || 'My Favorite Hobby & Daily Life';
+    const sample = [
+      `Hello! Let's talk about "${topic}". How would you describe your interest in this topic?`,
+      `That sounds great! Could you share a specific example or personal experience related to ${topic}?`,
+      `In your opinion, what is the best advice or takeaway you would share with others about ${topic}?`
+    ];
+    document.getElementById('customManualQuestionsText').value = sample.join('\n');
+  }
+
+  function applyManualCustomQuestions() {
+    const topic = document.getElementById('customManualTopicInput').value.trim() || 'حوار مخصص (Manual Topic)';
+    const raw = document.getElementById('customManualQuestionsText').value.trim();
+    const lines = raw ? raw.split(/\n+/).map(l => l.trim()).filter(Boolean) : ["Hello! Tell me about your topic today."];
+
+    activeScenario = {
+      id: "custom_manual",
+      title: `حوار يدوي: ${topic}`,
+      partner: "المحاور (Partner)",
+      mission: `التحدث بطلاقة حول (${topic}) والإجابة عن الأسئلة المخصصة.`,
+      turns: lines.map(q => ({
+        ai: q,
+        hints: ["Well, in my opinion...", "From my personal experience...", "For example, I usually...", "To sum up, I believe..."]
+      }))
+    };
+    resetConversationPreview();
+  }
+
+  function resetConversationPreview() {
+    currentTurnIdx = 0;
+    turnTimings = [];
+    const setupBanner = document.getElementById('setupMissionPreview');
+    if (setupBanner && activeScenario) {
+      setupBanner.innerHTML = `🎯 <b>المهمة:</b> ${activeScenario.mission} &nbsp;|&nbsp; 👤 <b>المحاور:</b> <span style="color:#6ee7b7;">${activeScenario.partner}</span>`;
+    }
+    const box = document.getElementById('chatTheater');
+    if (box && activeScenario && activeScenario.turns && activeScenario.turns[0]) {
+      box.innerHTML = `
+        <div style="font-size: 0.82rem; color: var(--muted); background: var(--inner); padding: 8px 10px; border-radius: 8px; border-right: 3px solid var(--glow);">
+          🎯 <b>المهمة:</b> ${activeScenario.mission} — <span style="color:#a7f3d0;">اضغط (أنهيت ردي / مسطرة Space) عند انتهاء إجابتك.</span>
+        </div>
+        ${renderAiBubble(activeScenario.turns[0].ai, 0)}
+      `;
+    }
+    renderHintsForTurn(0);
+    const tip = document.getElementById('tooltip');
+    if (tip) tip.style.display = 'none';
+  }
+
+  // ============================================================================
+  // 4. عرض الفقاعات والكلمات القابلة للنقر والترجمة
+  // ============================================================================
+  function makeWordsClickable(sentence) {
+    return sentence.split(/(\s+)/).map(token => {
+      const clean = token.replace(/[^a-zA-Z']/g, '');
+      if (clean.length > 0) {
+        const safeClean = clean.replace(/'/g, "");
+        return `<span class="word-span" onclick="event.stopPropagation(); handleWordClick('${safeClean}', '${token.replace(/'/g, "\\'")}')">${token}</span>`;
+      }
+      return token;
+    }).join('');
+  }
+
+  function renderAiBubble(text, idx) {
+    const safeText = text.replace(/'/g, "\\'");
+    return `
+      <div class="bubble bubble-ai" id="ai_b_${idx}">
+        <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.75rem; color:var(--glow); margin-bottom:6px; border-bottom:1px solid rgba(52,211,153,0.15); padding-bottom:4px;">
+          <div style="display:flex; align-items:center; gap:6px;">
+            <span style="background:rgba(16,185,129,0.2); border-radius:50%; width:22px; height:22px; display:inline-flex; align-items:center; justify-content:center; font-size:0.8rem;">🤖</span>
+            <span style="font-weight:800; color:#fff;">${activeScenario.partner}</span>
+            <span style="color:var(--muted); font-size:0.7rem;">• سؤال ${idx + 1}</span>
+          </div>
+          <div style="display:flex; gap:4px;">
+            <button class="btn-secondary btn-sm" style="padding:2px 8px; border-radius:12px; font-size:0.72rem;" onclick="speakSentence('${safeText}', false)">🔊 استماع</button>
+            <button class="btn-secondary btn-sm" style="padding:2px 8px; border-radius:12px; font-size:0.72rem;" onclick="speakSentence('${safeText}', true)">🐢 ببطء</button>
+          </div>
+        </div>
+        <div class="en-text ${isBlur ? 'blurred' : ''}" style="font-size:${currentFontRem}rem; padding:2px 0;" onclick="this.classList.remove('blurred')">
+          ${makeWordsClickable(text)}
+        </div>
+      </div>
+    `;
+  }
+
+  function renderHintsForTurn(idx) {
+    const turn = activeScenario.turns[Math.min(idx, activeScenario.turns.length - 1)];
+    const container = document.getElementById('hintsContainer');
+    if (!turn || !turn.hints) {
+      container.innerHTML = '';
+      return;
+    }
+    container.innerHTML = turn.hints.map(h => `
+      <span class="hint-chip">${makeWordsClickable(h)}</span>
+    `).join('');
+  }
+
+  function adjustFontSize(delta) {
+    currentFontRem = Math.max(0.85, Math.min(1.8, currentFontRem + delta));
+    document.querySelectorAll('.en-text').forEach(el => {
+      el.style.fontSize = `${currentFontRem}rem`;
+    });
+  }
+
+  function toggleBlurText() {
+    isBlur = !isBlur;
+    document.getElementById('blurToggle').classList.toggle('active', isBlur);
+    document.querySelectorAll('.bubble-ai .en-text').forEach(el => {
+      el.classList.toggle('blurred', isBlur);
+    });
+  }
+
+  function toggleAutoNext() {
+    isAutoNext = !isAutoNext;
+    document.getElementById('autoNextToggle').classList.toggle('active', isAutoNext);
+  }
+
+  // ============================================================================
+  // 5. القاموس الفوري والنطق البشري المؤكد مع رسائل حالة الخادم (مثل مدرب القراءة)
+  // ============================================================================
+  function handleWordClick(cleanWord, originalDisplay) {
+    if (!cleanWord) return;
+    const clickMode = document.getElementById('wordClickMode').value;
+
+    if (clickMode === 'speak') {
+      showDictionaryTooltip(cleanWord, originalDisplay, false);
+      playConfiguredAudio(cleanWord);
+    } else if (clickMode === 'modal') {
+      playConfiguredAudio(cleanWord);
+      openTranslationModal(cleanWord);
+    } else {
+      // الوضع الافتراضي: يفتح بطاقة القاموس السفلية فوراً مع حالة الصوت وينطق الكلمة
+      showDictionaryTooltip(cleanWord, originalDisplay, true);
+      playConfiguredAudio(cleanWord);
+    }
+  }
+
+  function speakInstant(text, slow = false) {
+    if (!('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    const utter = new SpeechSynthesisUtterance(text);
+    const sel = document.getElementById('voiceSelect');
+    if (availableVoices[sel?.value]) utter.voice = availableVoices[sel.value];
+    const baseRate = parseFloat(document.getElementById('rateRange').value) || 0.9;
+    utter.rate = slow ? Math.max(0.55, baseRate - 0.25) : baseRate;
+    window.speechSynthesis.speak(utter);
+  }
+
+  function testVoicePlayback() {
+    speakInstant("Hi, how are you?");
+  }
+
+  function speakSentence(text, slow = false, onDone = null) {
+    if (!('speechSynthesis' in window)) {
+      if (onDone) onDone();
+      return;
+    }
+    window.speechSynthesis.cancel();
+    const utter = new SpeechSynthesisUtterance(text);
+    const sel = document.getElementById('voiceSelect');
+    if (availableVoices[sel?.value]) utter.voice = availableVoices[sel.value];
+    const baseRate = parseFloat(document.getElementById('rateRange').value) || 0.9;
+    utter.rate = slow ? Math.max(0.55, baseRate - 0.25) : baseRate;
+
+    utter.onend = () => { if (onDone) onDone(); };
+    utter.onerror = () => { if (onDone) onDone(); };
+    window.speechSynthesis.speak(utter);
+  }
+
+  function playConfiguredAudio(word) {
+    const mode = document.getElementById('audioModeSelect').value;
+    if (mode === 'tts') {
+      setHumanStatus('⚡ تم التشغيل عبر نطق المتصفح الفوري.', 'var(--glow)');
+      speakInstant(word);
+    } else {
+      const srcMap = {
+        'human_free': 1,
+        'human_wiki': 2,
+        'human_cambridge_us': 3,
+        'human_cambridge_uk': 4
+      };
+      playHumanAudio(word, srcMap[mode] || 1);
+    }
+  }
+
+  function setHumanStatus(msg, color = 'var(--info)') {
+    document.querySelectorAll('.human-audio-status').forEach(el => {
+      el.textContent = msg;
+      el.style.color = color;
+    });
+  }
+
+  // دالة جلب وتشغيل الصوت البشري مع معالجة الازدحام وعدم التوفر والتحويل التلقائي
+  async function playHumanAudio(word, sourceIndex) {
+    const clean = word.toLowerCase().replace(/[^a-z]/g, '');
+    if (!clean) return;
+
+    const sourceNames = {
+      1: 'القاموس الحر (FreeDict)',
+      2: 'ويكيميديا (Wikimedia)',
+      3: 'كامبريدج الأمريكي (Cambridge US)',
+      4: 'كامبريدج البريطاني (Cambridge UK)'
+    };
+
+    setHumanStatus(`⏳ جاري طلب التسجيل البشري من ${sourceNames[sourceIndex]}...`, '#fde68a');
+
+    let audioUrl = null;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3800);
+
+    try {
+      if (sourceIndex === 1) {
+        const res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${clean}`, { signal: controller.signal });
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data)) {
+            for (const entry of data) {
+              for (const p of (entry.phonetics || [])) {
+                if (p.audio && p.audio.endsWith('.mp3')) {
+                  audioUrl = p.audio.startsWith('//') ? 'https:' + p.audio : p.audio;
+                  break;
+                }
+              }
+              if (audioUrl) break;
+            }
+          }
+        }
+      } else if (sourceIndex === 2) {
+        // استعلام مباشر من ويكيميديا مع دعم CORS
+        const wikiApi = `https://commons.wikimedia.org/w/api.php?action=query&titles=File:En-us-${clean}.ogg|File:En-uk-${clean}.ogg&prop=imageinfo&iiprop=url&format=json&origin=*`;
+        const res = await fetch(wikiApi, { signal: controller.signal });
+        if (res.ok) {
+          const data = await res.json();
+          const pages = data?.query?.pages || {};
+          for (const k in pages) {
+            if (pages[k]?.imageinfo?.[0]?.url) {
+              audioUrl = pages[k].imageinfo[0].url;
+              break;
+            }
+          }
+        }
+      } else if (sourceIndex === 3 || sourceIndex === 4) {
+        // معالجة قياسية لروابط كامبريدج للكلمات القصيرة والطويلة
+        const region = sourceIndex === 3 ? 'us_pron' : 'uk_pron';
+        const c1 = clean.charAt(0);
+        const c3 = clean.padEnd(3, '_').slice(0, 3);
+        const c5 = clean.padEnd(5, '_').slice(0, 5);
+        audioUrl = `https://dictionary.cambridge.org/media/english/${region}/${c1}/${c3}/${c5}/${clean}.mp3`;
+      }
+
+      clearTimeout(timeoutId);
+
+      if (audioUrl) {
+        const audio = new Audio(audioUrl);
+        audio.playbackRate = parseFloat(document.getElementById('rateRange').value) || 0.9;
+
+        let settled = false;
+        const playTimer = setTimeout(() => {
+          if (!settled) {
+            settled = true;
+            setHumanStatus(`⚠️ خادم (${sourceNames[sourceIndex]}) مزدحم أو بطيء حالياً — تم التحويل لنطق المتصفح السريع ⚡`, '#fbbf24');
+            speakInstant(clean);
+          }
+        }, 3500);
+
+        audio.oncanplaythrough = () => {
+          if (settled) return;
+          settled = true;
+          clearTimeout(playTimer);
+          setHumanStatus(`✔️ تم التشغيل بنجاح من ${sourceNames[sourceIndex]}`, 'var(--glow)');
+          audio.play().catch(() => {
+            setHumanStatus(`⚠️ تعذر تشغيل الملف الصوتي — تم التحويل لنطق المتصفح ⚡`, '#fbbf24');
+            speakInstant(clean);
+          });
+        };
+
+        audio.onerror = () => {
+          if (settled) return;
+          settled = true;
+          clearTimeout(playTimer);
+          setHumanStatus(`⚠️ الكلمة "${clean}" غير متوفرة صوتياً في (${sourceNames[sourceIndex]}) — تم تشغيل نطق المتصفح تلقائياً ⚡`, '#fbbf24');
+          speakInstant(clean);
+        };
+      } else {
+        setHumanStatus(`⚠️ الكلمة "${clean}" غير مسجلة في (${sourceNames[sourceIndex]}) — تم تشغيل نطق المتصفح تلقائياً ⚡`, '#fbbf24');
+        speakInstant(clean);
+      }
+    } catch (err) {
+      clearTimeout(timeoutId);
+      setHumanStatus(`⚠️ خادم القاموس (${sourceNames[sourceIndex]}) مزدحم أو غير متصل — تم التحويل لنطق المتصفح السريع ⚡`, '#fbbf24');
+      speakInstant(clean);
+    }
+  }
+
+  // عرض بطاقة القاموس السريعة تحت شاشة المحادثة (مطابقة لتجربة مدرب القراءة)
+  async function showDictionaryTooltip(clean, originalText, fetchMeaning = true) {
+    const tip = document.getElementById('tooltip');
+    tip.style.display = 'block';
+    tip.innerHTML = `
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
+        <div>
+          <span style="color:var(--muted);">الكلمة:</span>
+          <strong style="color:#fff; font-size:1.05rem; direction:ltr; display:inline-block; margin:0 4px;">${originalText}</strong>
+          <span id="quickTransSpan" style="color:var(--glow); font-weight:800; font-size:1rem;">${fetchMeaning ? '⏳ جاري الترجمة...' : ''}</span>
+        </div>
+        <div style="display:flex; gap:6px;">
+          <button class="btn-secondary btn-sm" onclick="openTranslationModal('${clean}')">📖 تفاصيل وأمثلة الكلمة</button>
+          <button class="btn-secondary btn-sm" onclick="addWordToArchive('${clean}')">+ حفظ في البنك</button>
+        </div>
+      </div>
+
+      <div class="human-audio-box">
+        <div style="font-size: 0.75rem; color: var(--muted); margin-bottom: 4px;">🎙️ مصادر النطق البشري الحقيقي (اختر المصدر لسماعه):</div>
+        <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+          <button class="source-btn" onclick="speakInstant('${clean}')">⚡ نطق المتصفح</button>
+          <button class="source-btn" onclick="playHumanAudio('${clean}', 1)">🔊 القاموس الحر</button>
+          <button class="source-btn" onclick="playHumanAudio('${clean}', 2)">🔊 ويكيميديا</button>
+          <button class="source-btn" onclick="playHumanAudio('${clean}', 3)">🇺🇸 كامبريدج (أمريكي)</button>
+          <button class="source-btn" onclick="playHumanAudio('${clean}', 4)">🇬🇧 كامبريدج (بريطاني)</button>
+        </div>
+        <div class="human-audio-status" style="font-size: 0.76rem; color: var(--info); margin-top: 6px; font-weight:700;"></div>
+      </div>
+    `;
+
+    if (fetchMeaning) {
+      const ar = await fetchArabicTranslation(clean);
+      const span = document.getElementById('quickTransSpan');
+      if (span) span.textContent = ar ? `— المعنى: (${ar})` : '— (اضغط تفاصيل الكلمة للمزيد)';
+    }
+  }
+
+  async function fetchArabicTranslation(text) {
+    if (!text || !text.trim()) return '';
+    try {
+      const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=ar&dt=t&q=${encodeURIComponent(text.trim())}`;
+      const res = await fetch(url);
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data[0]) return data[0].map(item => item[0]).join('').trim();
+      }
+    } catch (_) {}
+    try {
+      const res2 = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=en|ar`);
+      const data2 = await res2.json();
+      return data2.responseData?.translatedText || '';
+    } catch (_) {
+      return '';
+    }
+  }
+
+  async function openTranslationModal(word) {
+    const modal = document.getElementById('translationModal');
+    const title = document.getElementById('transModalTitle');
+    const body = document.getElementById('transModalBody');
+    const clean = word.toLowerCase().replace(/[^a-z]/g, '');
+
+    title.textContent = word;
+    body.innerHTML = `<div style="text-align:center; padding:18px; color:var(--glow);">⏳ جاري جلب المعاني والرموز الصوتية والأمثلة...</div>`;
+    modal.style.display = 'flex';
+
+    try {
+      const [dictRes, mainTrans, myMemoryRes] = await Promise.all([
+        fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${clean}`).then(r => r.ok ? r.json() : null).catch(() => null),
+        fetchArabicTranslation(clean),
+        fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(clean)}&langpair=en|ar`).then(r => r.ok ? r.json() : null).catch(() => null)
+      ]);
+
+      let phonetic = `/${clean}/`;
+      let pos = [];
+      let exEn = '';
+
+      if (Array.isArray(dictRes) && dictRes[0]) {
+        phonetic = dictRes[0].phonetic || (dictRes[0].phonetics?.find(p => p.text)?.text) || phonetic;
+        (dictRes[0].meanings || []).forEach(m => {
+          if (m.partOfSpeech && !pos.includes(m.partOfSpeech)) pos.push(m.partOfSpeech);
+          if (!exEn && m.definitions) {
+            const found = m.definitions.find(d => d.example);
+            if (found) exEn = found.example;
+          }
+        });
+      }
+
+      let synonyms = [];
+      if (myMemoryRes?.matches) {
+        myMemoryRes.matches.forEach(m => {
+          const t = (m.translation || '').trim();
+          if (t && /^[\u0600-\u06FF\s]+$/.test(t) && t !== mainTrans && !synonyms.includes(t)) {
+            synonyms.push(t);
+          }
+        });
+      }
+
+      const exAr = exEn ? await fetchArabicTranslation(exEn) : '';
+
+      body.innerHTML = `
+        <div style="background:var(--inner); padding:12px; border-radius:8px; border-right:4px solid var(--glow); margin-bottom:10px;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:1.5rem; font-weight:800; color:#6ee7b7; direction:ltr;">${word}</span>
+            <span style="font-size:1.5rem; font-weight:800; color:#fff;">${mainTrans || 'غير متوفر'}</span>
+          </div>
+          <div style="font-size:0.8rem; color:var(--muted); margin-top:4px;">
+            الرمز الصوتي: <b style="color:#fde68a; font-family:monospace; direction:ltr; display:inline-block;">${phonetic}</b>
+            ${pos.length ? ` | النوع: <b style="color:#6ee7b7;">${pos.join(', ')}</b>` : ''}
+          </div>
+          ${synonyms.length ? `<div style="margin-top:6px; font-size:0.78rem; color:#d1fae5;">معانٍ إضافية: ${synonyms.slice(0, 5).join(' ، ')}</div>` : ''}
+        </div>
+
+        ${exEn ? `
+          <div style="background:var(--inner); padding:10px; border-radius:8px; margin-bottom:10px;">
+            <div style="font-size:0.75rem; color:var(--glow); margin-bottom:2px;">💬 مثال سياقي:</div>
+            <div style="direction:ltr; text-align:left; color:#fff;">"${exEn}"</div>
+            <div style="color:#a7f3d0; font-size:0.82rem; margin-top:3px;">↲ ${exAr}</div>
+          </div>
+        ` : ''}
+
+        <div class="human-audio-box">
+          <div style="font-size: 0.78rem; color: var(--muted); margin-bottom: 6px;">🎙️ استمع لنطق الكلمة من القواميس البشرية:</div>
+          <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+            <button class="source-btn" onclick="speakInstant('${clean}')">⚡ المتصفح</button>
+            <button class="source-btn" onclick="playHumanAudio('${clean}', 1)">🔊 القاموس الحر</button>
+            <button class="source-btn" onclick="playHumanAudio('${clean}', 2)">🔊 ويكيميديا</button>
+            <button class="source-btn" onclick="playHumanAudio('${clean}', 3)">🇺🇸 كامبريدج (US)</button>
+            <button class="source-btn" onclick="playHumanAudio('${clean}', 4)">🇬🇧 كامبريدج (UK)</button>
+          </div>
+          <div class="human-audio-status" style="font-size: 0.76rem; color: var(--info); margin-top: 6px; font-weight:700;"></div>
+        </div>
+      `;
+    } catch (_) {
+      body.innerHTML = `<div style="color:var(--danger); text-align:center;">تعذر جلب البيانات، يرجى التحقق من اتصال الإنترنت.</div>`;
+    }
+  }
+
+  function closeTranslationModal() {
+    document.getElementById('translationModal').style.display = 'none';
+  }
+
+  function togglePhoneticGuide() {
+    const m = document.getElementById('phoneticGuideModal');
+    m.style.display = (m.style.display === 'none' || m.style.display === '') ? 'flex' : 'none';
+  }
+
+  // ============================================================================
+  // 6. محرك المحادثة الحية (بإذن مايكروفون واحد متصل لا يتكرر أبداً)
+  // ============================================================================
+  async function toggleConversationCall() {
+    if (!isCallRunning) {
+      // شبكة أمان: إذا كان في القسم المخصص وألصق نصاً دون اعتماده، يتم اعتماده فوراً
+      const curScenario = document.getElementById('scenarioSelect')?.value;
+      if (curScenario === 'custom_ai') {
+        const raw = document.getElementById('customAiPasteArea')?.value.trim();
+        if (raw && (!activeScenario || activeScenario.id !== 'custom_ai' || activeScenario.turns.length <= 1)) {
+          parseAndApplyAiScenario(false);
+        }
+      }
+      await startConversationCall();
+    } else {
+      stopConversationCall();
+    }
+  }
+
+  async function ensureSingleMicStream() {
+    // إذا كان المسار مفتوحاً مسبقاً في نفس الجلسة نعيد تفعيله فوراً بدون طلب إذن جديد من المتصفح!
+    if (persistentStream && persistentStream.active) {
+      persistentStream.getAudioTracks().forEach(t => t.enabled = true);
+      return persistentStream;
+    }
+    persistentStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    return persistentStream;
+  }
+
+  function formatCallTime(sec) {
+    const m = Math.floor(sec / 60).toString().padStart(2, '0');
+    const s = Math.floor(sec % 60).toString().padStart(2, '0');
+    return `${m}:${s}`;
+  }
+
+  function toggleQuickHelp() {
+    const m = document.getElementById('quickHelpModal');
+    if (!m) return;
+    m.style.display = (m.style.display === 'none' || m.style.display === '') ? 'flex' : 'none';
+  }
+
+  async function quickMicCheck() {
+    const btn = document.getElementById('micTestBtn');
+    btn.textContent = '⏳ جاري الفحص...';
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const src = ctx.createMediaStreamSource(stream);
+      const testAnalyser = ctx.createAnalyser();
+      testAnalyser.fftSize = 32;
+      src.connect(testAnalyser);
+      const data = new Uint8Array(testAnalyser.frequencyBinCount);
+      let checks = 0;
+      let heardSound = false;
+      const interval = setInterval(() => {
+        testAnalyser.getByteFrequencyData(data);
+        const avg = data.reduce((a, b) => a + b, 0) / data.length;
+        if (avg > 15) heardSound = true;
+        checks++;
+        btn.textContent = `🎙️ تحدث الآن (${3 - Math.floor(checks/5)}s)...`;
+        if (checks >= 15) {
+          clearInterval(interval);
+          stream.getTracks().forEach(t => t.stop());
+          if (ctx.state !== 'closed') ctx.close();
+          btn.textContent = heardSound ? '✔️ المايك سليم ويلتقط' : '⚠️ الصوت ضعيف جداً';
+          btn.style.color = heardSound ? 'var(--glow)' : 'var(--warning)';
+          setTimeout(() => {
+            btn.textContent = '🎙️ فحص المايك';
+            btn.style.color = '#67e8f9';
+          }, 3500);
+        }
+      }, 200);
+    } catch (_) {
+      btn.textContent = '❌ تعذر الوصول للمايك';
+      btn.style.color = 'var(--danger)';
+      setTimeout(() => {
+        btn.textContent = '🎙️ فحص المايك';
+        btn.style.color = '#67e8f9';
+      }, 3500);
+    }
+  }
+
+  // دعم مسطرة المسافة (Spacebar) للتحكم السلس بالدور دون لمس الفأرة
+  window.addEventListener('keydown', (e) => {
+    if (e.code === 'Space' && isCallRunning) {
+      const activeEl = document.activeElement;
+      const isInput = activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.isContentEditable);
+      if (!isInput && document.getElementById('activeTurnBar').style.display !== 'none') {
+        e.preventDefault();
+        finishUserTurnAndAdvance();
+      }
+    }
+  });
+
+  async function startConversationCall() {
+    try {
+      const stream = await ensureSingleMicStream();
+      mediaRecorder = new MediaRecorder(stream);
+      audioChunks = [];
+      turnTimings = [];
+      currentTurnIdx = 0;
+      callElapsedSeconds = 0;
+
+      mediaRecorder.ondataavailable = e => {
+        if (e.data && e.data.size > 0) audioChunks.push(e.data);
+      };
+
+      mediaRecorder.onstop = async () => {
+        await exportRecordedAudio();
+      };
+
+      if (!audioContext || audioContext.state === 'closed') {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioContext.state === 'suspended') await audioContext.resume();
+
+      const source = audioContext.createMediaStreamSource(stream);
+      analyser = audioContext.createAnalyser();
+      analyser.fftSize = 32;
+      source.connect(analyser);
+
+      // بدء التسجيل ثم إيقافه مؤقتاً أثناء تحدث المحاور
+      mediaRecorder.start();
+      if (mediaRecorder.state === 'recording') mediaRecorder.pause();
+
+      isCallRunning = true;
+      document.body.style.overflow = 'hidden';
+
+      // فتح شاشة ملء الشاشة 100% وإخفاء كل الشاشات اللاحقة
+      const fsStage = document.getElementById('fullscreenStage');
+      if (fsStage) fsStage.style.display = 'flex';
+      document.getElementById('postCallStage').style.display = 'none';
+      document.getElementById('jsonImportStage').style.display = 'none';
+      document.getElementById('evaluationResultsStage').style.display = 'none';
+
+      updateModeUI();
+
+      const chat = document.getElementById('chatTheater');
+      chat.innerHTML = '';
+
+      callTimer = setInterval(() => {
+        if (mediaRecorder && mediaRecorder.state === 'recording') {
+          callElapsedSeconds += 0.2;
+        }
+        const clock = document.getElementById('callDurationClock');
+        if (clock) clock.textContent = formatCallTime(callElapsedSeconds);
+      }, 200);
+
+      startMiniWaveLoop();
+
+      playEnvironmentIntroSound(() => {
+        if (isCallRunning) playAiQuestionTurn(0);
+      });
+
+    } catch (err) {
+      alert('يرجى السماح للمايكروفون مرة واحدة لبدء المحادثة.');
+    }
+  }
+
+  function playAiQuestionTurn(idx) {
+    if (!isCallRunning) return;
+    if (idx >= activeScenario.turns.length) {
+      stopConversationCall();
+      return;
+    }
+
+    currentTurnIdx = idx;
+    renderHintsForTurn(idx);
+    document.getElementById('activeTurnBar').style.display = 'none';
+    document.getElementById('callStatusBadge').textContent = `🤖 المحاور يتحدث (${idx + 1}/${activeScenario.turns.length})...`;
+    document.getElementById('callerAvatarBox')?.classList.add('speaking');
+
+    if (mediaRecorder && mediaRecorder.state === 'recording') {
+      mediaRecorder.pause();
+    }
+
+    const qText = activeScenario.turns[idx].ai;
+    const chat = document.getElementById('chatTheater');
+    chat.insertAdjacentHTML('beforeend', renderAiBubble(qText, idx));
+    chat.scrollTop = chat.scrollHeight;
+    playMessagePop();
+
+    speakSentence(qText, false, () => {
+      document.getElementById('callerAvatarBox')?.classList.remove('speaking');
+      if (isCallRunning) startUserAnswerTurn(idx);
+    });
+  }
+
+  // متغيرات مؤقت الردود ونظام شريط التقدم والتنبيه الصوتي الخافت
+  let turnCountdownTimer = null;
+  let turnRemainingSec = 8;
+  let turnTotalSec = 8;
+  let lastPingSec = -1;
+
+  let soundFxEnabled = true;
+
+  function toggleSoundFx() {
+    soundFxEnabled = !soundFxEnabled;
+    const btn = document.getElementById('soundFxBtn');
+    if (btn) {
+      btn.textContent = soundFxEnabled ? '🔔 المؤثرات: تعمل' : '🔕 المؤثرات: معطلة';
+      btn.style.color = soundFxEnabled ? '#fde68a' : 'var(--muted)';
+    }
+    if (soundFxEnabled) playAirportChime(null, true);
+  }
+
+  // صوت فقاعة الرسائل الفورية الخفيف
+  function playMessagePop() {
+    if (!soundFxEnabled) return;
+    try {
+      const ctx = audioContext || new (window.AudioContext || window.webkitAudioContext)();
+      if (ctx.state === 'suspended') ctx.resume();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(800, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(320, ctx.currentTime + 0.05);
+      gain.gain.setValueAtTime(0.05, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.05);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.05);
+    } catch (_) {}
+  }
+
+  // نغمة نداء المطار ومكتب الاستقبال المزدوجة
+  function playAirportChime(onDone = null, previewOnly = false) {
+    if (!soundFxEnabled && !previewOnly) {
+      if (onDone) onDone();
+      return;
+    }
+    try {
+      const ctx = audioContext || new (window.AudioContext || window.webkitAudioContext)();
+      if (ctx.state === 'suspended') ctx.resume();
+
+      const t = ctx.currentTime;
+      const osc1 = ctx.createOscillator();
+      const gain1 = ctx.createGain();
+      osc1.type = 'sine';
+      osc1.frequency.setValueAtTime(698.46, t);
+      gain1.gain.setValueAtTime(0.08, t);
+      gain1.gain.exponentialRampToValueAtTime(0.0001, t + 0.45);
+      osc1.connect(gain1);
+      gain1.connect(ctx.destination);
+      osc1.start(t);
+      osc1.stop(t + 0.45);
+
+      const osc2 = ctx.createOscillator();
+      const gain2 = ctx.createGain();
+      osc2.type = 'sine';
+      osc2.frequency.setValueAtTime(523.25, t + 0.28);
+      gain2.gain.setValueAtTime(0.09, t + 0.28);
+      gain2.gain.exponentialRampToValueAtTime(0.0001, t + 1.1);
+      osc2.connect(gain2);
+      gain2.connect(ctx.destination);
+      osc2.start(t + 0.28);
+      osc2.stop(t + 1.1);
+
+      setTimeout(() => { if (onDone) onDone(); }, 1250);
+    } catch (_) {
+      if (onDone) onDone();
+    }
+  }
+
+  // نغمة رنين هاتف واقعية وموجزة مع نقرة فتح الخط
+  function playPhoneRingtone(onDone = null) {
+    if (!soundFxEnabled) {
+      if (onDone) onDone();
+      return;
+    }
+    try {
+      const ctx = audioContext || new (window.AudioContext || window.webkitAudioContext)();
+      if (ctx.state === 'suspended') ctx.resume();
+
+      const t = ctx.currentTime;
+      function createRingBurst(startAt, duration) {
+        const oscA = ctx.createOscillator();
+        const oscB = ctx.createOscillator();
+        const gain = ctx.createGain();
+        oscA.type = 'sine';
+        oscB.type = 'sine';
+        oscA.frequency.setValueAtTime(440, startAt);
+        oscB.frequency.setValueAtTime(480, startAt);
+        gain.gain.setValueAtTime(0.05, startAt);
+        gain.gain.exponentialRampToValueAtTime(0.001, startAt + duration);
+        oscA.connect(gain);
+        oscB.connect(gain);
+        gain.connect(ctx.destination);
+        oscA.start(startAt);
+        oscB.start(startAt);
+        oscA.stop(startAt + duration);
+        oscB.stop(startAt + duration);
+      }
+
+      createRingBurst(t, 0.65);
+      createRingBurst(t + 0.85, 0.7);
+
+      const clickTime = t + 1.7;
+      const oscClick = ctx.createOscillator();
+      const clickGain = ctx.createGain();
+      oscClick.type = 'triangle';
+      oscClick.frequency.setValueAtTime(220, clickTime);
+      clickGain.gain.setValueAtTime(0.08, clickTime);
+      clickGain.gain.exponentialRampToValueAtTime(0.0001, clickTime + 0.06);
+      oscClick.connect(clickGain);
+      clickGain.connect(ctx.destination);
+      oscClick.start(clickTime);
+      oscClick.stop(clickTime + 0.06);
+
+      setTimeout(() => { if (onDone) onDone(); }, 1850);
+    } catch (_) {
+      if (onDone) onDone();
+    }
+  }
+
+  // مشغل المؤثر التلقائي حسب طبيعة الموقف
+  function playEnvironmentIntroSound(onDone = null) {
+    const selMode = document.getElementById('scenarioModeSelect')?.value || 'auto';
+    let isCall = false;
+    if (selMode === 'call') {
+      isCall = true;
+    } else if (selMode === 'onsite') {
+      isCall = false;
+    } else {
+      const callKeywords = ['phone', 'call', 'support', 'booking_agent', 'remote'];
+      const idStr = (activeScenario.id || '').toLowerCase();
+      isCall = callKeywords.some(k => idStr.includes(k));
+    }
+
+    const statusBadge = document.getElementById('callStatusBadge');
+    if (isCall) {
+      if (statusBadge) statusBadge.textContent = '📞 جاري الرنين وفتح الخط...';
+      playPhoneRingtone(onDone);
+    } else {
+      if (statusBadge) statusBadge.textContent = '🏢 نداء الموقف المباشر...';
+      playAirportChime(onDone);
+    }
+  }
+
+  // تنبيه صوتي خافت للردود المتوسطة والطويلة
+  function playSoftPing() {
+    if (!soundFxEnabled) return;
+    try {
+      const ctx = audioContext || new (window.AudioContext || window.webkitAudioContext)();
+      if (ctx.state === 'suspended') ctx.resume();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(659.25, ctx.currentTime);
+      gain.gain.setValueAtTime(0.04, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.12);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.12);
+    } catch (_) {}
+  }
+
+  // زر التمديد المرن (+3 ثوانٍ)
+  function extendTurnTimer(seconds = 3) {
+    if (!isCallRunning) return;
+    turnRemainingSec += seconds;
+    turnTotalSec += seconds;
+    const numEl = document.getElementById(`timer_num_${currentTurnIdx}`);
+    if (numEl) {
+      numEl.textContent = `⏳ الوقت المتبقي: ${Math.ceil(turnRemainingSec)} ثانية (+${seconds}s)`;
+      numEl.style.color = '#34d399';
+    }
+  }
+
+  function startUserAnswerTurn(idx) {
+    if (!isCallRunning) return;
+
+    if (mediaRecorder && mediaRecorder.state === 'paused') {
+      mediaRecorder.resume();
+    }
+
+    turnStartSec = Number(callElapsedSeconds.toFixed(1));
+    userSpokeInThisTurn = false;
+    silenceStartMs = null;
+
+    if (turnCountdownTimer) clearInterval(turnCountdownTimer);
+
+    const selDuration = parseInt(document.getElementById('responseDurationSelect')?.value, 10) || 8;
+    turnRemainingSec = selDuration;
+    turnTotalSec = selDuration;
+    lastPingSec = -1;
+
+    document.getElementById('activeTurnBar').style.display = 'flex';
+    document.getElementById('callStatusBadge').textContent = `🎙️ دورك الآن — المؤقت: ${selDuration} ثوانٍ`;
+
+    playMessagePop();
+    const chat = document.getElementById('chatTheater');
+    chat.insertAdjacentHTML('beforeend', `
+      <div class="bubble bubble-user" id="user_b_${idx}">
+        <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.75rem; color:#fde68a; margin-bottom:6px; border-bottom:1px solid rgba(253,230,138,0.2); padding-bottom:4px;">
+          <div style="display:flex; align-items:center; gap:6px;">
+            <span style="background:rgba(245,158,11,0.2); border-radius:50%; width:22px; height:22px; display:inline-flex; align-items:center; justify-content:center; font-size:0.8rem;">🎙️</span>
+            <span style="font-weight:800; color:#fff;">تسجيل ردك (الدور ${idx + 1})</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:6px;">
+            <span id="timer_num_${idx}" style="font-weight:bold; color:#a7f3d0; font-size:0.82rem; font-family:monospace; background:rgba(0,0,0,0.3); padding:2px 8px; border-radius:10px;">⏳ ${turnRemainingSec}s</span>
+            <button type="button" class="btn-secondary btn-sm" onclick="extendTurnTimer(3)" style="padding:2px 8px; font-size:0.7rem; border-color:var(--glow); color:#6ee7b7; border-radius:10px;" title="إضافة 3 ثوانٍ إضافية للرد">+3s</button>
+          </div>
+        </div>
+
+        <!-- شريط التقدم البصري العصري النحيف -->
+        <div style="width: 100%; height: 5px; background: rgba(0,0,0,0.6); border-radius: 99px; overflow: hidden; margin-bottom: 8px; border: 1px solid rgba(52, 211, 153, 0.25);">
+          <div id="timer_bar_${idx}" style="width: 100%; height: 100%; background: #10b981; border-radius: 99px; transition: width 0.1s linear, background-color 0.25s ease;"></div>
+        </div>
+
+        <div class="en-text" style="font-size:0.92rem; color:#d1fae5; direction:rtl; text-align:right;">
+          تحدث الآن بالإنجليزية... عند انتهاء المؤقت سينتقل الدور تلقائياً أو اضغط مسطرة (Space) / أنهيت ردي.
+        </div>
+      </div>
+    `);
+    chat.scrollTop = chat.scrollHeight;
+
+    // تشغيل العداد التنازلي التفاعلي مع المؤثر الصوتي والشريط المتناقص
+    turnCountdownTimer = setInterval(() => {
+      if (!isCallRunning) {
+        clearInterval(turnCountdownTimer);
+        return;
+      }
+
+      turnRemainingSec -= 0.1;
+      const numEl = document.getElementById(`timer_num_${idx}`);
+      const barEl = document.getElementById(`timer_bar_${idx}`);
+
+      if (numEl) {
+        const displaySec = Math.max(0, Math.ceil(turnRemainingSec));
+        numEl.textContent = `⏳ ${displaySec}s`;
+      }
+
+      if (barEl) {
+        const pct = Math.max(0, Math.min(100, (turnRemainingSec / turnTotalSec) * 100));
+        barEl.style.width = `${pct}%`;
+
+        // تدرج اللون من الأخضر إلى الأصفر ثم الأحمر
+        if (pct > 45) {
+          barEl.style.backgroundColor = '#10b981';
+        } else if (pct > 20) {
+          barEl.style.backgroundColor = '#f59e0b';
+        } else {
+          barEl.style.backgroundColor = '#ef4444';
+        }
+      }
+
+      // تنبيه صوتي خافت (Soft Tick/Ping) في آخر ثانيتين للردود المتوسطة (8s) والطويلة (15s)
+      if (selDuration >= 8 && turnRemainingSec <= 2.05 && turnRemainingSec > 0.05) {
+        const secInt = Math.floor(turnRemainingSec);
+        if (secInt !== lastPingSec && secInt >= 0) {
+          lastPingSec = secInt;
+          playSoftPing();
+        }
+      }
+
+      // انتهاء مدة الرد والانتقال التلقائي
+      if (turnRemainingSec <= 0) {
+        clearInterval(turnCountdownTimer);
+        finishUserTurnAndAdvance();
+      }
+    }, 100);
+  }
+
+  function finishUserTurnAndAdvance() {
+    if (!isCallRunning) return;
+    if (turnCountdownTimer) clearInterval(turnCountdownTimer);
+
+    const endSec = Number(callElapsedSeconds.toFixed(1));
+    turnTimings[currentTurnIdx] = {
+      turn: currentTurnIdx + 1,
+      start_time: turnStartSec,
+      end_time: Math.max(turnStartSec + 1, endSec)
+    };
+
+    const numEl = document.getElementById(`timer_num_${currentTurnIdx}`);
+    if (numEl) {
+      numEl.textContent = `✔️ تم الرد (${turnTimings[currentTurnIdx].start_time}s - ${turnTimings[currentTurnIdx].end_time}s)`;
+      numEl.style.color = '#34d399';
+    }
+
+    const barEl = document.getElementById(`timer_bar_${currentTurnIdx}`);
+    if (barEl) {
+      barEl.style.width = '100%';
+      barEl.style.backgroundColor = 'rgba(52, 211, 153, 0.4)';
+    }
+
+    if (currentTurnIdx + 1 < activeScenario.turns.length) {
+      playAiQuestionTurn(currentTurnIdx + 1);
+    } else {
+      speakSentence("Wonderful job! Thank you for the conversation.", false, () => {
+        stopConversationCall();
+      });
+    }
+  }
+
+  function repeatCurrentQuestion(slow = true) {
+    const turn = activeScenario.turns[currentTurnIdx];
+    if (turn) speakSentence(turn.ai, slow);
+  }
+
+  function startMiniWaveLoop() {
+    const spans = document.querySelectorAll('#miniWaveBox span');
+    const data = new Uint8Array(analyser ? analyser.frequencyBinCount : 8);
+
+    function loop() {
+      if (!isCallRunning || !analyser) return;
+      analyser.getByteFrequencyData(data);
+      let sum = 0;
+      spans.forEach((s, i) => {
+        const v = data[i] || 0;
+        sum += v;
+        s.style.height = `${Math.max(4, Math.min(16, (v / 255) * 18))}px`;
+      });
+
+      const avg = sum / spans.length;
+      if (mediaRecorder && mediaRecorder.state === 'recording') {
+        if (avg > 24) {
+          userSpokeInThisTurn = true;
+          silenceStartMs = null;
+        } else if (userSpokeInThisTurn && isAutoNext) {
+          if (!silenceStartMs) {
+            silenceStartMs = performance.now();
+          } else if (performance.now() - silenceStartMs > 2600) {
+            silenceStartMs = null;
+            finishUserTurnAndAdvance();
+            return;
+          }
+        }
+      }
+      waveFrame = requestAnimationFrame(loop);
+    }
+    waveFrame = requestAnimationFrame(loop);
+  }
+
+  function stopConversationCall() {
+    isCallRunning = false;
+    if (turnCountdownTimer) clearInterval(turnCountdownTimer);
+    if (window.speechSynthesis) window.speechSynthesis.cancel();
+    if (waveFrame) cancelAnimationFrame(waveFrame);
+    if (callTimer) clearInterval(callTimer);
+
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+      mediaRecorder.stop();
+    }
+
+    // كتم المسار برمجياً بدلاً من قتله حتى لا يعيد المتصفح طلب الإذن عند بدء محادثة ثانية
+    if (persistentStream) {
+      persistentStream.getAudioTracks().forEach(t => t.enabled = false);
+    }
+
+    document.body.style.overflow = 'auto';
+
+    // إغلاق شاشة ملء الشاشة وإظهار شاشة المرحلة الثالثة النظيفة
+    const fsStage = document.getElementById('fullscreenStage');
+    if (fsStage) fsStage.style.display = 'none';
+
+    const postStage = document.getElementById('postCallStage');
+    if (postStage) {
+      postStage.style.display = 'block';
+      postStage.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    document.getElementById('activeTurnBar').style.display = 'none';
+    document.querySelectorAll('#miniWaveBox span').forEach(s => s.style.height = '4px');
+    document.getElementById('copyPromptBtn')?.classList.add('prompt-beacon-active');
+  }
+
+  // تحويل وحفظ الملف الصوتي (WAV / WebM)
+  function audioBufferToWav(buffer) {
+    const numOfChan = buffer.numberOfChannels;
+    const length = buffer.length * numOfChan * 2 + 44;
+    const out = new DataView(new ArrayBuffer(length));
+    const channels = [];
+    const sampleRate = buffer.sampleRate;
+    let offset = 0, pos = 0;
+
+    function setUint16(data) { out.setUint16(pos, data, true); pos += 2; }
+    function setUint32(data) { out.setUint32(pos, data, true); pos += 4; }
+
+    setUint32(0x46464952);
+    setUint32(length - 8);
+    setUint32(0x45564157);
+    setUint32(0x20746d66);
+    setUint32(16);
+    setUint16(1);
+    setUint16(numOfChan);
+    setUint32(sampleRate);
+    setUint32(sampleRate * 2 * numOfChan);
+    setUint16(numOfChan * 2);
+    setUint16(16);
+    setUint32(0x61746164);
+    setUint32(length - pos - 4);
+
+    for (let i = 0; i < numOfChan; i++) channels.push(buffer.getChannelData(i));
+    while (offset < buffer.length) {
+      for (let i = 0; i < numOfChan; i++) {
+        let sample = Math.max(-1, Math.min(1, channels[i][offset]));
+        sample = (0.5 + sample < 0 ? sample * 32768 : sample * 32767) | 0;
+        out.setInt16(pos, sample, true);
+        pos += 2;
+      }
+      offset++;
+    }
+    return new Blob([out.buffer], { type: 'audio/wav' });
+  }
+
+  // تصدير الملف الصوتي مع تسمية ذكية للملف باسم السيناريو
+  async function exportRecordedAudio() {
+    if (!audioChunks.length) return;
+    const selectedFormat = document.getElementById('audioFormatSelect').value;
+    const rawBlob = new Blob(audioChunks, { type: 'audio/webm' });
+    let finalBlob = rawBlob;
+
+    const safeTitle = (activeScenario.title || 'Conversation')
+      .replace(/[^\u0621-\u064Aa-zA-Z0-9]/g, '_')
+      .replace(/_+/g, '_')
+      .slice(0, 24);
+    let filename = `Speaking_${safeTitle}_${Date.now()}.webm`;
+
+    if (selectedFormat === 'wav') {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const buf = await rawBlob.arrayBuffer();
+        const decoded = await ctx.decodeAudioData(buf);
+        finalBlob = audioBufferToWav(decoded);
+        filename = `Speaking_${safeTitle}_${Date.now()}.wav`;
+        if (ctx.state !== 'closed') ctx.close();
+      } catch (_) {}
+    }
+
+    const url = URL.createObjectURL(finalBlob);
+    const preview = document.getElementById('audioPreview');
+    preview.src = url;
+    document.getElementById('playerBox').style.display = 'block';
+    document.getElementById('downloadStatusNotice').textContent = `تم التنزيل باسم (${filename}) في التنزيلات تلقائياً 📥`;
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  }
+
+  function playMySnippet(start, end) {
+    const preview = document.getElementById('audioPreview');
+    if (!preview || !preview.src) {
+      alert('لا يوجد تسجيل صوتي محفوظ حالياً.');
+      return;
+    }
+    const s = Math.max(0, parseFloat(start) - 1.0);
+    const e = parseFloat(end) + 1.0;
+    preview.currentTime = s;
+    preview.play();
+    setTimeout(() => preview.pause(), Math.max(1500, (e - s) * 1000));
+  }
+
+  // ============================================================================
+  // 7. بناء ونسخ البرومبت الشامل والمتنوع
+  // ============================================================================
+  function copyPrompt() {
+    document.getElementById('copyPromptBtn')?.classList.remove('prompt-beacon-active');
+    const mode = document.getElementById('strictnessSelect').value;
+    const modeInstructions = {
+      friendly: `استمع لتسجيل ردود المتعلم في المحادثة وقيّمه بأسلوب هادئ، مشجع وإيجابي جداً يركز على بناء الثقة والطلاقة وتقديم بدائل بسيطة.`,
+      balanced: `استمع لتسجيل ردود المتعلم في المحادثة وقيّمه بأسلوب عملي متوازن يجمع بين تصحيح القواعد، تحسين النطق، واقتراح صياغات طبيعية.`,
+      native: `استمع لتسجيل ردود المتعلم وركز كمدرب طلاقة أصلي (Native Coach) على تحويل الجمل العادية أو الحرفية إلى تعبيرات طبيعية رشيقة يستخدمها المتحدث الأصلي.`,
+      strict: `استمع لتسجيل ردود المتعلم وقيّمه بصرامة ودقة أكاديمية تشمل الأزمنة، تركيب الجمل، مخارج الحروف، وإسقاط النهايات دون مجاملة.`,
+      cefr: `استمع لتسجيل ردود المتعلم وقيّمه وفق معايير (CEFR & IELTS Speaking) الأربعة: الطلاقة والترابط، ثراء المفردات، دقة القواعد، والنطق.`
+    };
+
+    const questionsList = activeScenario.turns.map((t, i) => {
+      const tm = turnTimings[i] ? `[التوقيت التقريبي في الملف: ${turnTimings[i].start_time}s - ${turnTimings[i].end_time}s]` : '';
+      return `السؤال (${i + 1}): "${t.ai}" ${tm}`;
+    }).join('\n');
+
+    const prompt = `${modeInstructions[mode]}
+سياق المحادثة: "${activeScenario.title}" — المهمة: "${activeScenario.mission}"
+الأسئلة التي أجاب عنها المتعلم بالترتيب:
+${questionsList}
+
+ممنوع كتابة أي تعليقات // داخل الكود. أخرج النتيجة فقط ككود JSON صالح بهذا الشكل:
+{
+  "score": 8.5,
+  "behavior": {
+    "fluency": "تقييم سرعة البديهة وانسيابية الكلام والوقفات",
+    "grammar": "تقييم سلامة القواعد والأزمنة مع أهم ملاحظة نحوية",
+    "vocab": "تقييم المفردات ومدى طبيعية العبارات المستخدمة",
+    "takeaway": "خلاصة عملية في سطرين لأبرز نقطة قوة وأهم نصيحة للتطوير"
+  },
+  "turns": [
+    {
+      "turn": 1,
+      "status": "green",
+      "transcript": "ما قاله المتعلم فعلياً بالإنجليزية",
+      "start_time": 0.5,
+      "end_time": 5.0,
+      "correction": "الصياغة الأصح قواعدياً",
+      "native_alternative": "كيف يقولها المتحدث الأصلي بشكل طبيعي",
+      "feedback_ar": "ملاحظة موجزة ومفيدة بالعربية حول هذا الرد"
+    }
+  ],
+  "golden_phrases": [
+    "I would prefer a window seat, please",
+    "Is the flight on schedule today?"
+  ]
+}`;
+
+    navigator.clipboard.writeText(prompt).then(() => {
+      // إظهار صندوق إدخال JSON فور نسخ البرومبت والتمرير إليه بسلاسة
+      const jsonStage = document.getElementById('jsonImportStage');
+      if (jsonStage) {
+        jsonStage.style.display = 'block';
+        jsonStage.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        setTimeout(() => document.getElementById('jsonInput')?.focus(), 300);
+      }
+      alert('تم نسخ البرومبت الشامل بنجاح! 📋\n\n1. اسحب ملف التسجيل مع البرومبت إلى أي ذكاء اصطناعي تفضله.\n2. انسخ كود الـ JSON الناتج وضعه في المربع الذي ظهر أمامك.');
+    }).catch(() => alert('تعذر النسخ التلقائي.'));
+  }
+
+  // ============================================================================
+  // 8. تطبيق كود التقييم JSON وتلوين المحادثة وتحديث بنك العبارات
+  // ============================================================================
+  function applyJsonEvaluation() {
+    let raw = document.getElementById('jsonInput').value.trim();
+    if (!raw) {
+      alert('يرجى لصق كود الـ JSON أولاً.');
+      return;
+    }
+    raw = raw.replace(/```json|```/g, '').replace(/\/\/.*$/gm, '');
+
+    try {
+      const data = JSON.parse(raw);
+
+      // إظهار لوحة النتائج الشاملة والتمرير إليها
+      const evalStage = document.getElementById('evaluationResultsStage');
+      if (evalStage) {
+        evalStage.style.display = 'flex';
+        evalStage.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+
+      const reviewChat = document.getElementById('reviewChatTheater');
+      const targetChat = reviewChat || document.getElementById('chatTheater');
+      if (targetChat) targetChat.innerHTML = '';
+
+      const badge = document.getElementById('scoreDisplay');
+      badge.textContent = `${data.score} / 10`;
+      badge.style.display = 'inline-flex';
+      badge.style.borderColor = data.score >= 8 ? 'var(--success)' : (data.score >= 5 ? 'var(--warning)' : 'var(--danger)');
+
+      if (data.behavior) {
+        document.getElementById('m_fluency').textContent = data.behavior.fluency || '—';
+        document.getElementById('m_grammar').textContent = data.behavior.grammar || '—';
+        document.getElementById('m_vocab').textContent = data.behavior.vocab || '—';
+        document.getElementById('m_takeaway').textContent = data.behavior.takeaway || '—';
+      }
+
+      const chat = targetChat;
+
+      (data.turns || []).forEach((t, idx) => {
+        const qText = activeScenario.turns[idx]?.ai || `Question ${idx + 1}`;
+        chat.insertAdjacentHTML('beforeend', renderAiBubble(qText, idx));
+
+        const stClass = t.status === 'green' ? 'eval-green' : (t.status === 'red' ? 'eval-red' : 'eval-yellow');
+        const safeNative = (t.native_alternative || t.correction || '').replace(/'/g, "\\'");
+
+        chat.insertAdjacentHTML('beforeend', `
+          <div class="bubble bubble-user ${stClass}">
+            <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.76rem; margin-bottom:4px;">
+              <strong>🧑‍🎓 ردك في الدور (${t.turn || idx + 1})</strong>
+              ${(t.start_time !== undefined && t.end_time !== undefined) ? `
+                <button class="btn-secondary btn-sm" style="padding:2px 8px;" onclick="playMySnippet(${t.start_time}, ${t.end_time})">🎧 اسمع ردك المسجل</button>
+              ` : ''}
+            </div>
+            <div class="en-text" style="font-size:${currentFontRem}rem; margin-bottom:6px;">
+              "${makeWordsClickable(t.transcript || '')}"
+            </div>
+            <div style="font-size:0.82rem; color:#ecfdf5; margin-bottom:4px;">
+              💡 <b>الملاحظة:</b> ${t.feedback_ar || ''}
+            </div>
+            ${t.native_alternative ? `
+              <div style="background:rgba(0,0,0,0.3); padding:6px 8px; border-radius:6px; display:flex; justify-content:space-between; align-items:center; gap:6px; direction:ltr; text-align:left; font-size:0.84rem;">
+                <span>✨ <b>Native:</b> ${makeWordsClickable(t.native_alternative)}</span>
+                <div style="display:flex; gap:4px;">
+                  <button class="source-btn" onclick="speakInstant('${safeNative}')">🔊</button>
+                  <button class="source-btn" onclick="addWordToArchive('${safeNative}')">+ حفظ</button>
+                </div>
+              </div>
+            ` : ''}
+          </div>
+        `);
+      });
+
+      const phrases = data.golden_phrases || [];
+      renderSessionBank(phrases);
+
+      let archive = JSON.parse(localStorage.getItem('speaking_archive_bank') || '[]');
+      phrases.forEach(p => {
+        if (p && !archive.includes(p)) archive.push(p);
+      });
+      localStorage.setItem('speaking_archive_bank', JSON.stringify(archive));
+      renderArchiveBank();
+
+    } catch (e) {
+      alert('حدث خطأ في قراءة كود الـ JSON.');
+    }
+  }
+
+  function loadSampleEvaluation() {
+    const sample = {
+      score: 8.5,
+      behavior: {
+        fluency: "انسيابية ممتازة في الردود مع سرعة بديهة واضحة ونبرة صوت واثقة.",
+        grammar: "تراكيب الجمل سليمة، ويُفضل استخدام (I would like) بدلاً من (I want) في الطلبات الرسمية.",
+        vocab: "توظيف جيد لمفردات السفر والمطار مثل (passport, window seat).",
+        takeaway: "نقطة القوة: وضوح النطق والتفاعل المباشر. نصيحة التطوير: استخدام صيغ الطلب المؤدب لرفع طبيعية الحوار."
+      },
+      turns: [
+        {
+          turn: 1,
+          status: "green",
+          transcript: "Good morning! I am flying to London today, and here is my passport.",
+          start_time: 0.5,
+          end_time: 4.8,
+          correction: "Good morning! I am flying to London today, and here is my passport.",
+          native_alternative: "Morning! I'm heading to London today—here's my passport.",
+          feedback_ar: "إجابة كاملة ومتقنة النطق!"
+        },
+        {
+          turn: 2,
+          status: "yellow",
+          transcript: "I have one bag and I want window seat please.",
+          start_time: 5.2,
+          end_time: 9.5,
+          correction: "I have one bag, and I would like a window seat, please.",
+          native_alternative: "Just one suitcase to check in, and I'd love a window seat, please.",
+          feedback_ar: "المعنى واضح، تذكر إضافة أداة التنكير (a) قبل window seat."
+        }
+      ],
+      golden_phrases: [
+        "I'm heading to London today",
+        "I'd love a window seat, please",
+        "Is the flight on schedule?"
+      ]
+    };
+    document.getElementById('jsonInput').value = JSON.stringify(sample, null, 2);
+    applyJsonEvaluation();
+  }
+
+  // ============================================================================
+  // 9. إدارة بنك العبارات والكلمات (بنفس بساطة مدرب القراءة)
+  // ============================================================================
+  function renderSessionBank(items) {
+    const box = document.getElementById('currentSessionWords');
+    if (!items || !items.length) {
+      box.innerHTML = '<span style="color: var(--glow); font-size: 0.8rem;">🎉 أداء متقن!</span>';
+      return;
+    }
+    box.innerHTML = items.map(w => {
+      const safe = w.replace(/'/g, "\\'");
+      return `<span class="word-badge" onclick="speakInstant('${safe}')">🔊 ${w}</span>`;
+    }).join('');
+  }
+
+  function addWordToArchive(item) {
+    if (!item) return;
+    let archive = JSON.parse(localStorage.getItem('speaking_archive_bank') || '[]');
+    if (!archive.includes(item)) {
+      archive.push(item);
+      localStorage.setItem('speaking_archive_bank', JSON.stringify(archive));
+      renderArchiveBank();
+    }
+  }
+
+  function renderArchiveBank() {
+    const box = document.getElementById('archiveContainer');
+    const count = document.getElementById('archiveCount');
+    let items = JSON.parse(localStorage.getItem('speaking_archive_bank') || '[]');
+    count.textContent = items.length;
+
+    if (!items.length) {
+      box.innerHTML = '<span style="color: var(--muted); font-size: 0.8rem;">الأرشيف فارغ.</span>';
+      return;
+    }
+
+    box.innerHTML = items.map((w, i) => {
+      const safe = w.replace(/'/g, "\\'");
+      return `
+        <span class="word-badge">
+          <span onclick="speakInstant('${safe}')">🔊 ${w}</span>
+          <span class="del-btn" onclick="deleteArchiveItem(${i})" title="حذف">&times;</span>
+        </span>
+      `;
+    }).join('');
+  }
+
+  function deleteArchiveItem(idx) {
+    let items = JSON.parse(localStorage.getItem('speaking_archive_bank') || '[]');
+    items.splice(idx, 1);
+    localStorage.setItem('speaking_archive_bank', JSON.stringify(items));
+    renderArchiveBank();
+  }
+
+  function clearArchive() {
+    if (confirm('هل أنت متأكد من مسح جميع العبارات المحفوظة؟')) {
+      localStorage.removeItem('speaking_archive_bank');
+      renderArchiveBank();
+    }
+  }
+
+  function toggleArchive() {
+    const c = document.getElementById('archiveContainer');
+    c.style.display = (c.style.display === 'none' || c.style.display === '') ? 'flex' : 'none';
+  }
+</script>
+
+
+</div></body></html>
