@@ -1185,35 +1185,109 @@
   // ============================================================================
   // 3. تهيئة الصفحة والأصوات والقوائم
   // ============================================================================
+  const CLOUD_VOICE_WORKER_URL = 'https://elapvoice.naif-work-xw.workers.dev';
+  let cloudVoiceAvailable = true;
+  let activeCloudAudio = null;
+
+  function appendCloudVoiceOptions(sel) {
+    if (!sel || !cloudVoiceAvailable) return;
+    const cloudVoices = [
+      { value: 'cloud:en-US', label: 'صوت بديل أمريكي' },
+      { value: 'cloud:en-GB', label: 'صوت بديل بريطاني' }
+    ];
+    cloudVoices.forEach(cv => {
+      if (!sel.querySelector(`option[value="${cv.value}"]`)) {
+        const opt = document.createElement('option');
+        opt.value = cv.value;
+        opt.textContent = cv.label;
+        sel.appendChild(opt);
+      }
+    });
+  }
+
+  function removeCloudVoiceOptions() {
+    cloudVoiceAvailable = false;
+    const sel = document.getElementById('voiceSelect');
+    if (!sel) return;
+    const wasCloud = sel.value && sel.value.startsWith('cloud:');
+    sel.querySelectorAll('option[value^="cloud:"]').forEach(opt => opt.remove());
+    if (wasCloud && sel.options.length > 0) {
+      sel.selectedIndex = 0;
+    }
+  }
+
+  async function verifyCloudVoiceHealth() {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 2500);
+    try {
+      const res = await fetch(`${CLOUD_VOICE_WORKER_URL}?lang=en-US&text=hi`, {
+        method: 'GET',
+        signal: controller.signal
+      });
+      clearTimeout(timer);
+      if (!res.ok) {
+        removeCloudVoiceOptions();
+      }
+    } catch (_) {
+      clearTimeout(timer);
+      removeCloudVoiceOptions();
+    }
+  }
+
+  function stopAllSpeechAudio() {
+    if (activeCloudAudio) {
+      try {
+        activeCloudAudio.onended = null;
+        activeCloudAudio.onerror = null;
+        activeCloudAudio.pause();
+        activeCloudAudio.currentTime = 0;
+      } catch (_) {}
+      activeCloudAudio = null;
+    }
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
+  }
+
   window.addEventListener('DOMContentLoaded', () => {
     buildScenarioDropdown();
     renderArchiveBank();
+    verifyCloudVoiceHealth();
   });
 
   function populateVoices() {
-    if (!('speechSynthesis' in window)) return;
-    const all = window.speechSynthesis.getVoices().filter(v => v.lang.startsWith('en'));
-    all.sort((a, b) => {
-      const aNat = a.name.includes('Natural') || a.name.includes('Online');
-      const bNat = b.name.includes('Natural') || b.name.includes('Online');
-      return (bNat ? 1 : 0) - (aNat ? 1 : 0);
-    });
-    availableVoices = all;
     const sel = document.getElementById('voiceSelect');
-    sel.innerHTML = '';
-    availableVoices.forEach((v, i) => {
-      const opt = document.createElement('option');
-      opt.value = i;
-      const isNat = v.name.includes('Natural') || v.name.includes('Online');
-      opt.textContent = `${isNat ? '⭐ ' : ''}${v.name} (${v.lang})`;
-      sel.appendChild(opt);
-    });
+    if (!sel) return;
+    const prevVal = sel.value;
+    if ('speechSynthesis' in window) {
+      const all = window.speechSynthesis.getVoices().filter(v => v.lang.startsWith('en'));
+      all.sort((a, b) => {
+        const aNat = a.name.includes('Natural') || a.name.includes('Online');
+        const bNat = b.name.includes('Natural') || b.name.includes('Online');
+        return (bNat ? 1 : 0) - (aNat ? 1 : 0);
+      });
+      availableVoices = all;
+      sel.innerHTML = '';
+      availableVoices.forEach((v, i) => {
+        const opt = document.createElement('option');
+        opt.value = i;
+        const isNat = v.name.includes('Natural') || v.name.includes('Online');
+        opt.textContent = `${isNat ? '⭐ ' : ''}${v.name} (${v.lang})`;
+        sel.appendChild(opt);
+      });
+    } else {
+      sel.innerHTML = '';
+    }
+    appendCloudVoiceOptions(sel);
+    if (prevVal && Array.from(sel.options).some(o => o.value === prevVal)) {
+      sel.value = prevVal;
+    }
   }
 
   if ('speechSynthesis' in window) {
     window.speechSynthesis.onvoiceschanged = populateVoices;
-    populateVoices();
   }
+  populateVoices();
 
   document.getElementById('rateRange').addEventListener('input', (e) => {
     document.getElementById('rateVal').textContent = `${e.target.value}x`;
@@ -1684,15 +1758,62 @@ Output ONLY in valid JSON with NO markdown commentary, NO extra keys, NO comment
     }
   }
 
-  function speakInstant(text, slow = false) {
-    if (!('speechSynthesis' in window)) return;
-    window.speechSynthesis.cancel();
+  function speakBrowserFallback(text, rate, onDone = null) {
+    if (!('speechSynthesis' in window)) {
+      if (onDone) onDone();
+      return;
+    }
     const utter = new SpeechSynthesisUtterance(text);
     const sel = document.getElementById('voiceSelect');
-    if (availableVoices[sel?.value]) utter.voice = availableVoices[sel.value];
-    const baseRate = parseFloat(document.getElementById('rateRange').value) || 0.9;
-    utter.rate = slow ? Math.max(0.55, baseRate - 0.25) : baseRate;
+    const idx = parseInt(sel?.value, 10);
+    if (!isNaN(idx) && availableVoices[idx]) utter.voice = availableVoices[idx];
+    utter.rate = rate;
+    utter.onend = () => { if (onDone) onDone(); };
+    utter.onerror = () => { if (onDone) onDone(); };
     window.speechSynthesis.speak(utter);
+  }
+
+  function playSpeechUnified(text, slow = false, onDone = null) {
+    if (!text || !text.trim()) {
+      if (onDone) onDone();
+      return;
+    }
+    stopAllSpeechAudio();
+    const sel = document.getElementById('voiceSelect');
+    const selectedVal = sel ? sel.value : '';
+    const baseRate = parseFloat(document.getElementById('rateRange').value) || 0.9;
+    const targetRate = slow ? Math.max(0.55, baseRate - 0.25) : baseRate;
+
+    if (selectedVal && selectedVal.startsWith('cloud:')) {
+      const lang = selectedVal.replace('cloud:', '');
+      const url = `${CLOUD_VOICE_WORKER_URL}?lang=${encodeURIComponent(lang)}&text=${encodeURIComponent(text)}`;
+      const audio = new Audio(url);
+      audio.playbackRate = targetRate;
+      activeCloudAudio = audio;
+
+      let fellBack = false;
+      const fallbackToLocal = () => {
+        if (fellBack) return;
+        fellBack = true;
+        if (activeCloudAudio === audio) activeCloudAudio = null;
+        removeCloudVoiceOptions();
+        speakBrowserFallback(text, targetRate, onDone);
+      };
+
+      audio.onended = () => {
+        if (activeCloudAudio === audio) activeCloudAudio = null;
+        if (!fellBack && onDone) onDone();
+      };
+      audio.onerror = fallbackToLocal;
+      audio.play().catch(fallbackToLocal);
+      return;
+    }
+
+    speakBrowserFallback(text, targetRate, onDone);
+  }
+
+  function speakInstant(text, slow = false) {
+    playSpeechUnified(text, slow, null);
   }
 
   function testVoicePlayback() {
@@ -1700,20 +1821,7 @@ Output ONLY in valid JSON with NO markdown commentary, NO extra keys, NO comment
   }
 
   function speakSentence(text, slow = false, onDone = null) {
-    if (!('speechSynthesis' in window)) {
-      if (onDone) onDone();
-      return;
-    }
-    window.speechSynthesis.cancel();
-    const utter = new SpeechSynthesisUtterance(text);
-    const sel = document.getElementById('voiceSelect');
-    if (availableVoices[sel?.value]) utter.voice = availableVoices[sel.value];
-    const baseRate = parseFloat(document.getElementById('rateRange').value) || 0.9;
-    utter.rate = slow ? Math.max(0.55, baseRate - 0.25) : baseRate;
-
-    utter.onend = () => { if (onDone) onDone(); };
-    utter.onerror = () => { if (onDone) onDone(); };
-    window.speechSynthesis.speak(utter);
+    playSpeechUnified(text, slow, onDone);
   }
 
   function playConfiguredAudio(word) {
@@ -2528,7 +2636,7 @@ Output ONLY in valid JSON with NO markdown commentary, NO extra keys, NO comment
   function stopConversationCall() {
     isCallRunning = false;
     if (turnCountdownTimer) clearInterval(turnCountdownTimer);
-    if (window.speechSynthesis) window.speechSynthesis.cancel();
+    stopAllSpeechAudio();
     if (waveFrame) cancelAnimationFrame(waveFrame);
     if (callTimer) clearInterval(callTimer);
 
