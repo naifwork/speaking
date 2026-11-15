@@ -665,8 +665,8 @@
         <div style="display: inline-flex; align-items: center; gap: 4px; background: var(--inner); padding: 4px 8px; border-radius: 8px; border: 1px solid var(--border);">
           <label style="font-size: 0.75rem; color: var(--muted);">الحفظ:</label>
           <select id="audioFormatSelect" style="padding: 2px 4px; font-size: 0.75rem; border: none;">
-            <option value="wav" selected="">WAV</option>
-            <option value="webm">WebM</option>
+            <option value="webm" selected="">WebM (خفيف وسريع)</option>
+            <option value="wav">WAV (غير مضغوط)</option>
           </select>
         </div>
 
@@ -700,9 +700,11 @@
           </div>
         </div>
 
-        <button id="copyPromptBtn" class="btn-primary prompt-beacon-active" style="padding: 12px 28px; font-size: 1rem; border-radius: 10px; margin: 0 auto;" onclick="copyPrompt()">
-          📋 نسخ برومبت التقييم للذكاء الاصطناعي
-        </button>
+        <div style="display: flex; justify-content: center;">
+          <button id="copyPromptBtn" class="btn-primary prompt-beacon-active" style="padding: 12px 28px; font-size: 1rem; border-radius: 10px; flex: none;" onclick="copyPrompt()">
+            📋 نسخ برومبت التقييم للذكاء الاصطناعي
+          </button>
+        </div>
       </div>
     </div>
 
@@ -713,11 +715,20 @@
           <h2 style="margin: 0; color: #fde68a;">📥 ألصق كود التقييم الناتج من الذكاء الاصطناعي (JSON)</h2>
           <p class="sub" style="margin-top: 2px;">بعد أن يُخرج الذكاء كود الـ JSON، انسخه بالكامل وألصقه هنا لعرض درجاتك وملاحظاتك فوراً.</p>
         </div>
-        <button class="btn-secondary btn-sm" onclick="loadSampleEvaluation()" style="color: #fde68a;">✨ تجربة نموذج جاهز</button>
+        <button type="button" class="btn-secondary btn-sm" onclick="const box = document.getElementById('jsonInput'); box.value = ''; box.focus();" style="color: #fca5a5; border-color: rgba(239, 68, 68, 0.35);" title="مسح النص الحالي وتجهيز الحقل للصق كود جديد">
+          🗑️ تفريغ الحقل
+        </button>
       </div>
-      <textarea id="jsonInput" style="height: 80px;" placeholder="{&quot;score&quot;: 8.5, &quot;behavior&quot;: {...}, &quot;turns&quot;: [...], &quot;golden_phrases&quot;: [...]}"></textarea>
+      <textarea id="jsonInput" style="height: 85px;" placeholder="{&quot;score&quot;: 8.5, &quot;behavior&quot;: {...}, &quot;turns&quot;: [...], &quot;golden_phrases&quot;: [...]}"></textarea>
       <div class="btn-row" style="margin-top: 8px;">
-        <button class="btn-primary" style="padding: 10px;" onclick="applyJsonEvaluation()">🎯 اعتماد النتيجة واستعراض التقرير الملون</button>
+        <button class="btn-primary" style="padding: 11px; font-size: 0.95rem;" onclick="applyJsonEvaluation(false)">🎯 اعتماد النتيجة واستعراض التقرير الملون</button>
+      </div>
+
+      <!-- زر تجريبي معزول في الأسفل بعيداً عن الأزرار الرئيسية -->
+      <div style="margin-top: 12px; padding-top: 8px; border-top: 1px dashed rgba(255,255,255,0.1); display: flex; justify-content: flex-end;">
+        <button type="button" class="btn-secondary btn-sm" onclick="loadSampleEvaluation()" style="font-size: 0.72rem; color: var(--muted); opacity: 0.85;" title="يعرض مثالاً افتراضياً لتوضيح شكل التقرير فقط">
+          🧪 عرض مثال تجريبي للتقرير (بيانات افتراضية للاختبار فقط — ليست تقييمك)
+        </button>
       </div>
     </div>
 
@@ -950,7 +961,15 @@
 
   </div>
 
-  <!-- نافذة تفاصيل الكلمة الكاملة (القاموس الموسع) -->
+  <!-- زر إيقاف الاستماع العائم (يظهر تلقائياً فقط أثناء تشغيل أي صوت لمنع التداخل) -->
+<div id="floatingAudioStopBar" style="display: none; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 9998; background: rgba(6, 20, 15, 0.96); border: 1.5px solid #f87171; border-radius: 99px; padding: 6px 14px; box-shadow: 0 8px 28px rgba(0, 0, 0, 0.75); align-items: center; gap: 10px; backdrop-filter: blur(10px);">
+  <span style="font-size: 0.8rem; color: #fecaca; font-weight: 700;">🔊 جاري التشغيل...</span>
+  <button type="button" class="btn-record btn-sm" onclick="stopAllPlaybackNow()" style="border-radius: 99px; padding: 5px 14px; font-size: 0.8rem;">
+    ⏹️ إيقاف الاستماع
+  </button>
+</div>
+
+<!-- نافذة تفاصيل الكلمة الكاملة (القاموس الموسع) -->
 <div id="translationModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); backdrop-filter:blur(4px); z-index:9999; align-items:center; justify-content:center; padding:14px;" onclick="if(event.target===this) closeTranslationModal()">
   <div style="background:#08221a; border:1px solid var(--glow); border-radius:12px; width:100%; max-width:500px; overflow:hidden; display:flex; flex-direction:column; max-height:86vh;">
     <div style="background:#0d3327; padding:10px 14px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
@@ -1189,6 +1208,31 @@
   const CLOUD_VOICE_WORKER_URL = 'https://elapvoice.naif-work-xw.workers.dev';
   let cloudVoiceAvailable = true;
   let activeCloudAudio = null;
+  let activeHumanAudio = null;
+  let snippetStopTimer = null;
+
+  function updateFloatingStopBtn(show) {
+    const bar = document.getElementById('floatingAudioStopBar');
+    if (!bar) return;
+    bar.style.display = (show && !isCallRunning) ? 'flex' : 'none';
+  }
+
+  function stopUserAudioPlayback() {
+    if (snippetStopTimer) {
+      clearTimeout(snippetStopTimer);
+      snippetStopTimer = null;
+    }
+    const preview = document.getElementById('audioPreview');
+    if (preview && !preview.paused) {
+      try { preview.pause(); } catch (_) {}
+    }
+  }
+
+  function stopAllPlaybackNow() {
+    stopAllSpeechAudio();
+    stopUserAudioPlayback();
+    updateFloatingStopBtn(false);
+  }
 
   function appendCloudVoiceOptions(sel) {
     if (!sel || !cloudVoiceAvailable) return;
@@ -1245,9 +1289,20 @@
       } catch (_) {}
       activeCloudAudio = null;
     }
+    if (activeHumanAudio) {
+      try {
+        activeHumanAudio.onended = null;
+        activeHumanAudio.onerror = null;
+        activeHumanAudio.pause();
+        activeHumanAudio.currentTime = 0;
+      } catch (_) {}
+      activeHumanAudio = null;
+    }
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
     }
+    stopUserAudioPlayback();
+    updateFloatingStopBtn(false);
   }
 
   window.addEventListener('DOMContentLoaded', () => {
@@ -1761,6 +1816,7 @@ Output ONLY in valid JSON with NO markdown commentary, NO extra keys, NO comment
 
   function speakBrowserFallback(text, rate, onDone = null) {
     if (!('speechSynthesis' in window)) {
+      updateFloatingStopBtn(false);
       if (onDone) onDone();
       return;
     }
@@ -1769,8 +1825,15 @@ Output ONLY in valid JSON with NO markdown commentary, NO extra keys, NO comment
     const idx = parseInt(sel?.value, 10);
     if (!isNaN(idx) && availableVoices[idx]) utter.voice = availableVoices[idx];
     utter.rate = rate;
-    utter.onend = () => { if (onDone) onDone(); };
-    utter.onerror = () => { if (onDone) onDone(); };
+    updateFloatingStopBtn(true);
+    utter.onend = () => {
+      updateFloatingStopBtn(false);
+      if (onDone) onDone();
+    };
+    utter.onerror = () => {
+      updateFloatingStopBtn(false);
+      if (onDone) onDone();
+    };
     window.speechSynthesis.speak(utter);
   }
 
@@ -1909,13 +1972,17 @@ Output ONLY in valid JSON with NO markdown commentary, NO extra keys, NO comment
       clearTimeout(timeoutId);
 
       if (audioUrl) {
+        stopAllSpeechAudio();
         const audio = new Audio(audioUrl);
+        activeHumanAudio = audio;
         audio.playbackRate = parseFloat(document.getElementById('rateRange').value) || 0.9;
 
         let settled = false;
         const playTimer = setTimeout(() => {
           if (!settled) {
             settled = true;
+            if (activeHumanAudio === audio) activeHumanAudio = null;
+            updateFloatingStopBtn(false);
             setHumanStatus(`⚠️ خادم (${sourceNames[sourceIndex]}) مزدحم أو بطيء حالياً — تم التحويل لنطق المتصفح السريع ⚡`, '#fbbf24');
             speakInstant(clean);
           }
@@ -1926,16 +1993,26 @@ Output ONLY in valid JSON with NO markdown commentary, NO extra keys, NO comment
           settled = true;
           clearTimeout(playTimer);
           setHumanStatus(`✔️ تم التشغيل بنجاح من ${sourceNames[sourceIndex]}`, 'var(--glow)');
+          updateFloatingStopBtn(true);
           audio.play().catch(() => {
+            if (activeHumanAudio === audio) activeHumanAudio = null;
+            updateFloatingStopBtn(false);
             setHumanStatus(`⚠️ تعذر تشغيل الملف الصوتي — تم التحويل لنطق المتصفح ⚡`, '#fbbf24');
             speakInstant(clean);
           });
+        };
+
+        audio.onended = () => {
+          if (activeHumanAudio === audio) activeHumanAudio = null;
+          updateFloatingStopBtn(false);
         };
 
         audio.onerror = () => {
           if (settled) return;
           settled = true;
           clearTimeout(playTimer);
+          if (activeHumanAudio === audio) activeHumanAudio = null;
+          updateFloatingStopBtn(false);
           setHumanStatus(`⚠️ الكلمة "${clean}" غير متوفرة صوتياً في (${sourceNames[sourceIndex]}) — تم تشغيل نطق المتصفح تلقائياً ⚡`, '#fbbf24');
           speakInstant(clean);
         };
@@ -2194,6 +2271,11 @@ Output ONLY in valid JSON with NO markdown commentary, NO extra keys, NO comment
   async function startConversationCall() {
     try {
       const stream = await ensureSingleMicStream();
+      const activeTracks = stream.getAudioTracks().filter(t => t.readyState === 'live' && !t.muted);
+      if (!activeTracks.length) {
+        alert('⚠️ تنبيه: المايكروفون متصل لكنه مكتوم من إعدادات النظام! يرجى تفعيله قبل بدء العرض.');
+        return;
+      }
       mediaRecorder = new MediaRecorder(stream);
       audioChunks = [];
       turnTimings = [];
@@ -2736,12 +2818,36 @@ Output ONLY in valid JSON with NO markdown commentary, NO extra keys, NO comment
       alert('لا يوجد تسجيل صوتي محفوظ حالياً.');
       return;
     }
+    stopAllSpeechAudio();
+
     const s = Math.max(0, parseFloat(start) - 1.0);
     const e = parseFloat(end) + 1.0;
     preview.currentTime = s;
+    updateFloatingStopBtn(true);
+
+    preview.onended = () => updateFloatingStopBtn(false);
     preview.play();
-    setTimeout(() => preview.pause(), Math.max(1500, (e - s) * 1000));
+
+    snippetStopTimer = setTimeout(() => {
+      preview.pause();
+      updateFloatingStopBtn(false);
+      snippetStopTimer = null;
+    }, Math.max(1500, (e - s) * 1000));
   }
+
+  window.addEventListener('DOMContentLoaded', () => {
+    const mainAudio = document.getElementById('audioPreview');
+    if (mainAudio) {
+      mainAudio.addEventListener('play', () => {
+        if (activeCloudAudio) { try { activeCloudAudio.pause(); } catch (_) {} activeCloudAudio = null; }
+        if (activeHumanAudio) { try { activeHumanAudio.pause(); } catch (_) {} activeHumanAudio = null; }
+        if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+        updateFloatingStopBtn(true);
+      });
+      mainAudio.addEventListener('pause', () => updateFloatingStopBtn(false));
+      mainAudio.addEventListener('ended', () => updateFloatingStopBtn(false));
+    }
+  });
 
   // ============================================================================
   // 7. بناء ونسخ البرومبت الشامل والمتنوع
@@ -2767,7 +2873,10 @@ Output ONLY in valid JSON with NO markdown commentary, NO extra keys, NO comment
 الأسئلة التي أجاب عنها المتعلم بالترتيب:
 ${questionsList}
 
-ممنوع كتابة أي تعليقات // داخل الكود. أخرج النتيجة فقط ككود JSON صالح بهذا الشكل:
+تعليمات صارمة جداً:
+1. استمع للملف الصوتي المرفق وفرّغ ما قاله المتعلم حرفياً بالإنجليزية في حقل "transcript".
+2. إذا تعذر عليك سماع الملف الصوتي أو تفريغه لأي سبب تقني، لا تخمّن التقييم ولا تؤلف نصوصاً، بل ضع "score": 0 واكتب في "takeaway": "تنبيه: تعذر على هذه المنصة قراءة الملف الصوتي، يرجى استخدام Gemini أو تقليل مدة الرد".
+3. ممنوع كتابة أي تعليقات // داخل الكود. أخرج النتيجة فقط ككود JSON صالح بهذا الشكل:
 {
   "score": 8.5,
   "behavior": {
@@ -2809,21 +2918,161 @@ ${questionsList}
   // ============================================================================
   // 8. تطبيق كود التقييم JSON وتلوين المحادثة وتحديث بنك العبارات
   // ============================================================================
-  function applyJsonEvaluation() {
-    let raw = document.getElementById('jsonInput').value.trim();
+  function smartParseEvaluationJson(rawInput) {
+    let text = String(rawInput || '').trim();
+    // 1. إزالة الأحرف الخفية وعلامات التنصيص الذكية
+    text = text
+      .replace(/[\u200B-\u200D\uFEFF]/g, '')
+      .replace(/\u00A0/g, ' ')
+      .replace(/[“”]/g, '"')
+      .replace(/[‘’]/g, "'");
+
+    // 2. اقتناص الكود بين أول { وآخر }
+    const firstBrace = text.indexOf('{');
+    if (firstBrace !== -1) {
+      text = text.slice(firstBrace);
+    }
+    const lastBrace = text.lastIndexOf('}');
+    if (lastBrace !== -1) {
+      text = text.slice(0, lastBrace + 1);
+    }
+
+    // 3. معالجة الأسطر الجديدة داخل النصوص، التعليقات، وعلامات الاقتباس غير المهربة
+    let sanitized = '';
+    let inString = false;
+    let escapeNext = false;
+
+    for (let i = 0; i < text.length; i++) {
+      const ch = text[i];
+      const nextCh = text[i + 1] || '';
+
+      if (inString) {
+        if (escapeNext) {
+          sanitized += ch;
+          escapeNext = false;
+        } else if (ch === '\\') {
+          sanitized += ch;
+          escapeNext = true;
+        } else if (ch === '\n') {
+          sanitized += '\\n';
+        } else if (ch === '\r') {
+          // تجاهل \r
+        } else if (ch === '\t') {
+          sanitized += '\\t';
+        } else if (ch === '"') {
+          let j = i + 1;
+          while (j < text.length && /\s/.test(text[j])) j++;
+          const after = text[j] || '';
+          if (after === ':' || after === ',' || after === '}' || after === ']' || after === '') {
+            inString = false;
+            sanitized += '"';
+          } else {
+            sanitized += '\\"';
+          }
+        } else {
+          sanitized += ch;
+        }
+      } else {
+        if (ch === '"') {
+          inString = true;
+          sanitized += '"';
+        } else if (ch === '/' && nextCh === '/') {
+          while (i < text.length && text[i] !== '\n') i++;
+        } else if (ch === '/' && nextCh === '*') {
+          i += 2;
+          while (i < text.length && !(text[i] === '*' && text[i + 1] === '/')) i++;
+          i++;
+        } else {
+          sanitized += ch;
+        }
+      }
+    }
+
+    // 4. إزالة الفواصل الزائدة وإغلاق أي أقواس ناقصة
+    sanitized = sanitized
+      .replace(/,\s*([}\]])/g, '$1')
+      .replace(/}\s*{/g, '},{');
+
+    let openCurly = 0, openSquare = 0, inStr2 = false, esc2 = false;
+    for (let i = 0; i < sanitized.length; i++) {
+      const c = sanitized[i];
+      if (inStr2) {
+        if (esc2) esc2 = false;
+        else if (c === '\\') esc2 = true;
+        else if (c === '"') inStr2 = false;
+      } else {
+        if (c === '"') inStr2 = true;
+        else if (c === '{') openCurly++;
+        else if (c === '}') openCurly--;
+        else if (c === '[') openSquare++;
+        else if (c === ']') openSquare--;
+      }
+    }
+    if (inStr2) sanitized += '"';
+    while (openSquare > 0) { sanitized += ']'; openSquare--; }
+    while (openCurly > 0) { sanitized += '}'; openCurly--; }
+    sanitized = sanitized.replace(/,\s*([}\]])/g, '$1');
+
+    const parsed = JSON.parse(sanitized);
+
+    // 5. توحيد وتطبيع الحقول مهما اختلف تنسيق الذكاء الاصطناعي
+    const rawScore = parsed.score ?? parsed.overall_score ?? parsed.grade ?? 0;
+    const numScore = parseFloat(String(rawScore).replace(/[^\d.]/g, ''));
+    const beh = parsed.behavior || parsed.summary || parsed.evaluation || {};
+    const rawTurns = Array.isArray(parsed.turns) ? parsed.turns : (Array.isArray(parsed.responses) ? parsed.responses : []);
+    const rawPhrases = Array.isArray(parsed.golden_phrases) ? parsed.golden_phrases : (Array.isArray(parsed.phrases) ? parsed.phrases : []);
+
+    return {
+      score: isNaN(numScore) ? 0 : numScore,
+      behavior: {
+        fluency: beh.fluency || '—',
+        grammar: beh.grammar || '—',
+        vocab: beh.vocab || beh.vocabulary || '—',
+        takeaway: beh.takeaway || beh.advice || '—'
+      },
+      turns: rawTurns.map((t, i) => {
+        const st = String(t.status || 'yellow').toLowerCase();
+        const normStatus = (st.includes('green') || st.includes('ممتاز')) ? 'green' : ((st.includes('red') || st.includes('ضعيف')) ? 'red' : 'yellow');
+        const fallbackTime = turnTimings[i] || {};
+        return {
+          turn: t.turn || (i + 1),
+          status: normStatus,
+          transcript: t.transcript || t.user_response || t.text || '',
+          start_time: t.start_time !== undefined ? parseFloat(t.start_time) : fallbackTime.start_time,
+          end_time: t.end_time !== undefined ? parseFloat(t.end_time) : fallbackTime.end_time,
+          correction: t.correction || t.corrected || '',
+          native_alternative: t.native_alternative || t.native || t.correction || '',
+          feedback_ar: t.feedback_ar || t.feedback || ''
+        };
+      }),
+      golden_phrases: rawPhrases.filter(p => typeof p === 'string' && p.trim().length > 0)
+    };
+  }
+
+  function applyJsonEvaluation(isSampleMode = false) {
+    const raw = document.getElementById('jsonInput').value.trim();
     if (!raw) {
       alert('يرجى لصق كود الـ JSON أولاً.');
       return;
     }
-    raw = raw.replace(/```json|```/g, '').replace(/\/\/.*$/gm, '');
 
     try {
-      const data = JSON.parse(raw);
+      const data = smartParseEvaluationJson(raw);
+      document.getElementById('jsonInput').value = JSON.stringify(data, null, 2);
 
       // إظهار لوحة النتائج الشاملة والتمرير إليها
       const evalStage = document.getElementById('evaluationResultsStage');
       if (evalStage) {
         evalStage.style.display = 'flex';
+        let demoBanner = document.getElementById('sampleModeNoticeBanner');
+        if (!demoBanner) {
+          demoBanner = document.createElement('div');
+          demoBanner.id = 'sampleModeNoticeBanner';
+          demoBanner.style.cssText = 'background: rgba(245, 158, 11, 0.16); border: 1px solid #f59e0b; color: #fde68a; padding: 10px 14px; border-radius: 10px; font-size: 0.84rem; font-weight: 700; text-align: center;';
+          demoBanner.textContent = '🧪 تنبيه: هذا التقرير المعروض هو (مثال تجريبي افتراضي) لتوضيح شكل النتائج فقط، وليس تقييمك الفعلي.';
+          evalStage.prepend(demoBanner);
+        }
+        demoBanner.style.display = isSampleMode ? 'block' : 'none';
         evalStage.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
 
@@ -2856,7 +3105,7 @@ ${questionsList}
           <div class="bubble bubble-user ${stClass}">
             <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.76rem; margin-bottom:4px;">
               <strong>🧑‍🎓 ردك في الدور (${t.turn || idx + 1})</strong>
-              ${(t.start_time !== undefined && t.end_time !== undefined) ? `
+              ${(t.start_time !== undefined && !isNaN(t.start_time) && t.end_time !== undefined && !isNaN(t.end_time)) ? `
                 <button class="btn-secondary btn-sm" style="padding:2px 8px;" onclick="playMySnippet(${t.start_time}, ${t.end_time})">🎧 اسمع ردك المسجل</button>
               ` : ''}
             </div>
@@ -2882,15 +3131,17 @@ ${questionsList}
       const phrases = data.golden_phrases || [];
       renderSessionBank(phrases);
 
-      let archive = JSON.parse(localStorage.getItem('speaking_archive_bank') || '[]');
-      phrases.forEach(p => {
-        if (p && !archive.includes(p)) archive.push(p);
-      });
-      localStorage.setItem('speaking_archive_bank', JSON.stringify(archive));
-      renderArchiveBank();
+      if (!isSampleMode) {
+        let archive = JSON.parse(localStorage.getItem('speaking_archive_bank') || '[]');
+        phrases.forEach(p => {
+          if (p && !archive.includes(p)) archive.push(p);
+        });
+        localStorage.setItem('speaking_archive_bank', JSON.stringify(archive));
+        renderArchiveBank();
+      }
 
     } catch (e) {
-      alert('حدث خطأ في قراءة كود الـ JSON.');
+      alert('تعذر قراءة كود الـ JSON؛ تأكد من نسخ الرد كاملاً من الذكاء الاصطناعي.');
     }
   }
 
@@ -2932,7 +3183,7 @@ ${questionsList}
       ]
     };
     document.getElementById('jsonInput').value = JSON.stringify(sample, null, 2);
-    applyJsonEvaluation();
+    applyJsonEvaluation(true);
   }
 
   // ============================================================================
