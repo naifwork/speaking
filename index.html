@@ -655,9 +655,10 @@
         <div style="display: inline-flex; align-items: center; gap: 4px; background: var(--inner); padding: 4px 8px; border-radius: 8px; border: 1px solid var(--glow);">
           <label style="font-size: 0.75rem; color: #a7f3d0; font-weight: 700;">⏱️ الرد:</label>
           <select id="responseDurationSelect" style="padding: 2px 4px; font-size: 0.75rem; border: none; font-weight: bold; color: #fff;">
-            <option value="3">⚡ قصير (3s)</option>
+            <option value="3">⚡ سريع (3s)</option>
             <option value="8" selected="">⏱️ متوسط (8s)</option>
             <option value="15">⏳ طويل (15s)</option>
+            <option value="60">🕊️ شبه مفتوح (دقيقة - 60s)</option>
           </select>
         </div>
 
@@ -972,7 +973,7 @@
         <b>1. اختر الموقف:</b> حدد أحد السيناريوهات الجاهزة، أو اختر (قسم مخصص بالذكاء) لتوليد حوار وفق موضوعك وعمقه المفضل.
       </div>
       <div style="background:var(--inner); padding:8px 10px; border-radius:8px; border-right:3px solid var(--info);">
-        <b>2. حدد سرعة الرد:</b> اختر مدة الرد (3 ثوانٍ للإحماء السريع، 8 ثوانٍ متوسط، 15 ثانية للتفصيل والتوسع).
+        <b>2. حدد سرعة الرد:</b> اختر مدة الرد (3 ثوانٍ سريع للإحماء، 8 ثوانٍ متوسط، 15 ثانية طويل للتفصيل، أو 60 ثانية شبه مفتوح للحديث الحر).
       </div>
       <div style="background:var(--inner); padding:8px 10px; border-radius:8px; border-right:3px solid var(--warning);">
         <b>3. تحدث براحة:</b> استمع لسؤال المحاور ثم ابدأ كلامك؛ سينتقل الدور تلقائياً عند انتهاء المؤقت أو بالضغط على (مسطرة المسافة Space).
@@ -2545,7 +2546,7 @@ Output ONLY in valid JSON with NO markdown commentary, NO extra keys, NO comment
         }
       }
 
-      // تنبيه صوتي خافت (Soft Tick/Ping) في آخر ثانيتين للردود المتوسطة (8s) والطويلة (15s)
+      // تنبيه صوتي خافت (Soft Tick/Ping) في آخر ثانيتين للردود المتوسطة (8s) والطويلة (15s) وشبه المفتوحة (60s)
       if (selDuration >= 8 && turnRemainingSec <= 2.05 && turnRemainingSec > 0.05) {
         const secInt = Math.floor(turnRemainingSec);
         if (secInt !== lastPingSec && secInt >= 0) {
@@ -2613,21 +2614,7 @@ Output ONLY in valid JSON with NO markdown commentary, NO extra keys, NO comment
         s.style.height = `${Math.max(4, Math.min(16, (v / 255) * 18))}px`;
       });
 
-      const avg = sum / spans.length;
-      if (mediaRecorder && mediaRecorder.state === 'recording') {
-        if (avg > 24) {
-          userSpokeInThisTurn = true;
-          silenceStartMs = null;
-        } else if (userSpokeInThisTurn && isAutoNext) {
-          if (!silenceStartMs) {
-            silenceStartMs = performance.now();
-          } else if (performance.now() - silenceStartMs > 2600) {
-            silenceStartMs = null;
-            finishUserTurnAndAdvance();
-            return;
-          }
-        }
-      }
+      // تم إلغاء الانتقال التلقائي عبر الصمت؛ الاعتماد الكامل على المؤقت الزمني أو ضغط زر الإنهاء
       waveFrame = requestAnimationFrame(loop);
     }
     waveFrame = requestAnimationFrame(loop);
