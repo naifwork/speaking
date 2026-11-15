@@ -665,8 +665,8 @@
         <div style="display: inline-flex; align-items: center; gap: 4px; background: var(--inner); padding: 4px 8px; border-radius: 8px; border: 1px solid var(--border);">
           <label style="font-size: 0.75rem; color: var(--muted);">الحفظ:</label>
           <select id="audioFormatSelect" style="padding: 2px 4px; font-size: 0.75rem; border: none;">
-            <option value="webm" selected="">WebM (خفيف وسريع)</option>
-            <option value="wav">WAV (غير مضغوط)</option>
+            <option value="wav" selected="">WAV (متوافق مع كل المنصات)</option>
+            <option value="webm">WebM</option>
           </select>
         </div>
 
@@ -2735,14 +2735,15 @@ Output ONLY in valid JSON with NO markdown commentary, NO extra keys, NO comment
     document.getElementById('copyPromptBtn')?.classList.add('prompt-beacon-active');
   }
 
-  // تحويل وحفظ الملف الصوتي (WAV / WebM)
+  // تحويل وحفظ الملف الصوتي بصيغة WAV مضغوطة الذكاء (16kHz Mono) مقبولة في كل المنصات
   function audioBufferToWav(buffer) {
-    const numOfChan = buffer.numberOfChannels;
-    const length = buffer.length * numOfChan * 2 + 44;
+    const targetRate = Math.min(16000, buffer.sampleRate);
+    const ratio = buffer.sampleRate / targetRate;
+    const newLength = Math.floor(buffer.length / ratio);
+    const inputData = buffer.getChannelData(0);
+    const length = newLength * 2 + 44;
     const out = new DataView(new ArrayBuffer(length));
-    const channels = [];
-    const sampleRate = buffer.sampleRate;
-    let offset = 0, pos = 0;
+    let pos = 0;
 
     function setUint16(data) { out.setUint16(pos, data, true); pos += 2; }
     function setUint32(data) { out.setUint32(pos, data, true); pos += 4; }
@@ -2753,23 +2754,23 @@ Output ONLY in valid JSON with NO markdown commentary, NO extra keys, NO comment
     setUint32(0x20746d66);
     setUint32(16);
     setUint16(1);
-    setUint16(numOfChan);
-    setUint32(sampleRate);
-    setUint32(sampleRate * 2 * numOfChan);
-    setUint16(numOfChan * 2);
+    setUint16(1);
+    setUint32(targetRate);
+    setUint32(targetRate * 2);
+    setUint16(2);
     setUint16(16);
     setUint32(0x61746164);
     setUint32(length - pos - 4);
 
-    for (let i = 0; i < numOfChan; i++) channels.push(buffer.getChannelData(i));
-    while (offset < buffer.length) {
-      for (let i = 0; i < numOfChan; i++) {
-        let sample = Math.max(-1, Math.min(1, channels[i][offset]));
-        sample = (0.5 + sample < 0 ? sample * 32768 : sample * 32767) | 0;
-        out.setInt16(pos, sample, true);
-        pos += 2;
-      }
-      offset++;
+    for (let i = 0; i < newLength; i++) {
+      const srcIdx = i * ratio;
+      const idx0 = Math.floor(srcIdx);
+      const idx1 = Math.min(idx0 + 1, inputData.length - 1);
+      const frac = srcIdx - idx0;
+      const rawSample = inputData[idx0] * (1 - frac) + inputData[idx1] * frac;
+      const sample = Math.max(-1, Math.min(1, rawSample));
+      out.setInt16(pos, (sample < 0 ? sample * 32768 : sample * 32767) | 0, true);
+      pos += 2;
     }
     return new Blob([out.buffer], { type: 'audio/wav' });
   }
